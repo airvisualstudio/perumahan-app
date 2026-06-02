@@ -32,6 +32,15 @@ export interface Contact {
   notes: string;
   assigned_to: string;
   created_at: string;
+  housing_interest?: string;
+  lead_source?: string;
+}
+
+export interface HousingProject {
+  id: string;
+  name: string;
+  location: string;
+  price_range: string;
 }
 
 export interface Company {
@@ -142,9 +151,36 @@ export interface ApprovalHistory {
   notes?: string;
 }
 
+export interface TemplateElement {
+  id: string;
+  type: 'header' | 'title_number' | 'client_info' | 'document_body' | 'totals_area' | 'status_stamp' | 'qr_code' | 'text' | 'paragraph' | 'signature';
+  label: string;
+  content: string;
+  x: number; // percentage
+  y: number; // percentage
+  visible: boolean;
+  fontSize?: number;
+  fontWeight?: string;
+  alignment?: 'left' | 'center' | 'right';
+  width?: number;
+}
+
+export interface VisualTemplate {
+  id: string;
+  name: string;
+  doc_type: string;
+  paper_size: 'A4' | 'A5' | 'F4';
+  paper_orientation: 'portrait' | 'landscape';
+  logo_text: string;
+  header_address: string;
+  header_phone_email: string;
+  font_family: string;
+  elements: TemplateElement[];
+}
+
 export interface Document {
   id: string;
-  doc_type: 'invoice' | 'receipt' | 'letter';
+  doc_type: string;
   doc_number: string;
   title: string;
   created_by: string;
@@ -201,9 +237,15 @@ const MOCK_COMPANIES: Company[] = [
   { id: 'com-2', name: 'Gojek Tokopedia (GoTo)', industry: 'Teknologi', size: '500+', website: 'goto-group.com', address: 'Jl. Pasar Raya Blok M, Jakarta' }
 ];
 
+const MOCK_HOUSING_PROJECTS: HousingProject[] = [
+  { id: 'proj-1', name: 'Griya Indah Sentosa', location: 'Bandung Timur', price_range: 'Rp 400jt - 600jt' },
+  { id: 'proj-2', name: 'Bukit Melati Cluster', location: 'Bogor Selatan', price_range: 'Rp 700jt - 1.2M' },
+  { id: 'proj-3', name: 'Green Valley Residences', location: 'Tangerang Raya', price_range: 'Rp 500jt - 900jt' }
+];
+
 const MOCK_CONTACTS: Contact[] = [
-  { id: 'con-1', name: 'Andi Hermawan', email: 'andi@telkom.co.id', phone: '081234567890', company_id: 'com-1', tags: ['Enterprise', 'VP'], notes: 'Kontak utama untuk tender cloud.', assigned_to: 'usr-3', created_at: new Date(Date.now() - 5 * 24 * 3600 * 1000).toISOString() },
-  { id: 'con-2', name: 'Dewi Lestari', email: 'dewi.l@tokopedia.com', phone: '089876543210', company_id: 'com-2', tags: ['High-Value', 'PM'], notes: 'Tertarik dengan sub-kontrak perumahan developer.', assigned_to: 'usr-3', created_at: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString() }
+  { id: 'con-1', name: 'Andi Hermawan', email: 'andi@telkom.co.id', phone: '081234567890', company_id: 'com-1', tags: ['Enterprise', 'VP'], notes: 'Kontak utama untuk tender cloud.', assigned_to: 'usr-3', created_at: new Date(Date.now() - 5 * 24 * 3600 * 1000).toISOString(), housing_interest: 'proj-2', lead_source: 'Instagram Ad' },
+  { id: 'con-2', name: 'Dewi Lestari', email: 'dewi.l@tokopedia.com', phone: '089876543210', company_id: 'com-2', tags: ['High-Value', 'PM'], notes: 'Tertarik dengan sub-kontrak perumahan developer.', assigned_to: 'usr-3', created_at: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString(), housing_interest: 'proj-1', lead_source: 'Walk-in / Kantor Pemasaran' }
 ];
 
 const MOCK_DEALS: Deal[] = [
@@ -239,6 +281,67 @@ const MOCK_APPROVAL_TEMPLATES: ApprovalTemplate[] = [
     doc_type: 'letter',
     levels: [
       { level: 1, role: 'Admin / HR Lead', user_id: 'usr-1', required: true }
+    ]
+  }
+];
+
+export const MOCK_VISUAL_TEMPLATES: VisualTemplate[] = [
+  {
+    id: 'vt-invoice-default',
+    name: 'Layout Invoice Default',
+    doc_type: 'invoice',
+    paper_size: 'A4',
+    paper_orientation: 'portrait',
+    logo_text: 'PT Domus Somnia Indonesia',
+    header_address: 'Jl. Jenderal Sudirman Kav. 21, Mega Kuningan, Jakarta Selatan',
+    header_phone_email: 'Telp: (021) 555-0192 | Email: finance@domus-somnia.com',
+    font_family: 'Inter',
+    elements: [
+      { id: 'el-header', type: 'header', label: 'Kop Surat / Header', content: '', x: 5, y: 5, visible: true },
+      { id: 'el-title-number', type: 'title_number', label: 'Judul & No Dokumen', content: '', x: 60, y: 5, visible: true },
+      { id: 'el-client-info', type: 'client_info', label: 'Data Penerima / Klien', content: '', x: 5, y: 22, visible: true },
+      { id: 'el-document-body', type: 'document_body', label: 'Isi Dokumen / Tabel', content: '', x: 5, y: 35, visible: true },
+      { id: 'el-totals-area', type: 'totals_area', label: 'Total Biaya (Invoice)', content: '', x: 55, y: 65, visible: true },
+      { id: 'el-status-stamp', type: 'status_stamp', label: 'Stempel Keabsahan', content: '', x: 5, y: 82, visible: true },
+      { id: 'el-qr-code', type: 'qr_code', label: 'Kode QR Pengabsah', content: '', x: 75, y: 80, visible: true }
+    ]
+  },
+  {
+    id: 'vt-receipt-default',
+    name: 'Layout Kwitansi Default',
+    doc_type: 'receipt',
+    paper_size: 'A4',
+    paper_orientation: 'portrait',
+    logo_text: 'PT Domus Somnia Indonesia',
+    header_address: 'Jl. Jenderal Sudirman Kav. 21, Mega Kuningan, Jakarta Selatan',
+    header_phone_email: 'Telp: (021) 555-0192 | Email: finance@domus-somnia.com',
+    font_family: 'Inter',
+    elements: [
+      { id: 'el-header', type: 'header', label: 'Kop Surat / Header', content: '', x: 5, y: 5, visible: true },
+      { id: 'el-title-number', type: 'title_number', label: 'Judul & No Dokumen', content: '', x: 60, y: 5, visible: true },
+      { id: 'el-client-info', type: 'client_info', label: 'Data Penerima / Klien', content: '', x: 5, y: 22, visible: true },
+      { id: 'el-document-body', type: 'document_body', label: 'Isi Dokumen / Tabel', content: '', x: 5, y: 32, visible: true },
+      { id: 'el-status-stamp', type: 'status_stamp', label: 'Stempel Keabsahan', content: '', x: 5, y: 75, visible: true },
+      { id: 'el-qr-code', type: 'qr_code', label: 'Kode QR Pengabsah', content: '', x: 75, y: 70, visible: true }
+    ]
+  },
+  {
+    id: 'vt-letter-default',
+    name: 'Layout Surat Resmi Default',
+    doc_type: 'letter',
+    paper_size: 'A4',
+    paper_orientation: 'portrait',
+    logo_text: 'PT Domus Somnia Indonesia',
+    header_address: 'Jl. Jenderal Sudirman Kav. 21, Mega Kuningan, Jakarta Selatan',
+    header_phone_email: 'Telp: (021) 555-0192 | Email: finance@domus-somnia.com',
+    font_family: 'Inter',
+    elements: [
+      { id: 'el-header', type: 'header', label: 'Kop Surat / Header', content: '', x: 5, y: 5, visible: true },
+      { id: 'el-title-number', type: 'title_number', label: 'Judul & No Dokumen', content: '', x: 5, y: 20, visible: true },
+      { id: 'el-client-info', type: 'client_info', label: 'Data Penerima / Klien', content: '', x: 5, y: 32, visible: true },
+      { id: 'el-document-body', type: 'document_body', label: 'Isi Dokumen / Tabel', content: '', x: 5, y: 44, visible: true },
+      { id: 'el-status-stamp', type: 'status_stamp', label: 'Stempel Keabsahan', content: '', x: 5, y: 80, visible: true },
+      { id: 'el-qr-code', type: 'qr_code', label: 'Kode QR Pengabsah', content: '', x: 75, y: 78, visible: true }
     ]
   }
 ];
@@ -288,6 +391,8 @@ interface AppContextType {
   documents: Document[];
   auditLogs: AuditLog[];
   offlineSyncQueue: any[];
+  visualTemplates: VisualTemplate[];
+  housingProjects: HousingProject[];
   
   // Handlers
   switchUser: (userId: string) => void;
@@ -301,9 +406,17 @@ interface AppContextType {
   
   // CRM
   addContact: (contact: Omit<Contact, 'id' | 'created_at'>) => void;
+  updateContact: (id: string, contact: Partial<Contact>) => void;
+  deleteContact: (id: string) => void;
   addCompany: (company: Omit<Company, 'id'>) => void;
+  updateCompany: (id: string, company: Partial<Company>) => void;
+  deleteCompany: (id: string) => void;
   addDeal: (deal: Omit<Deal, 'id' | 'created_at'>) => void;
+  updateDeal: (id: string, deal: Partial<Deal>) => void;
+  deleteDeal: (id: string) => void;
   updateDealStage: (dealId: string, stageId: string) => void;
+  addHousingProject: (project: Omit<HousingProject, 'id'>) => void;
+  deleteHousingProject: (id: string) => void;
   
   // Tasks
   addTask: (task: Omit<Task, 'id' | 'comments' | 'created_at'>) => void;
@@ -324,6 +437,8 @@ interface AppContextType {
   rejectDocument: (docId: string, notes?: string) => void;
   revokeDocument: (docId: string, reason: string) => void;
   updateApprovalTemplate: (template: ApprovalTemplate) => void;
+  updateVisualTemplate: (template: VisualTemplate) => void;
+  createVisualTemplate: (name: string, baseType: 'invoice' | 'receipt' | 'letter') => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -349,8 +464,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [documents, setDocuments] = useState<Document[]>(() => loadState('documents', MOCK_DOCUMENTS));
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(() => loadState('audit_logs', []));
   const [offlineSyncQueue, setOfflineSyncQueue] = useState<any[]>(() => loadState('sync_queue', []));
+  const [visualTemplates, setVisualTemplates] = useState<VisualTemplate[]>(() => {
+    const loaded = loadState('visual_templates', MOCK_VISUAL_TEMPLATES);
+    const isValid = Array.isArray(loaded) && loaded.every(t => t && Array.isArray(t.elements));
+    if (!isValid) {
+      localStorage.setItem('crm_db_visual_templates', JSON.stringify(MOCK_VISUAL_TEMPLATES));
+      return MOCK_VISUAL_TEMPLATES;
+    }
+    return loaded;
+  });
+  const [housingProjects, setHousingProjects] = useState<HousingProject[]>(() => loadState('housing_projects', MOCK_HOUSING_PROJECTS));
 
   // Sync to LocalStorage on modifications
+  useEffect(() => {
+    localStorage.setItem('crm_db_housing_projects', JSON.stringify(housingProjects));
+  }, [housingProjects]);
   useEffect(() => {
     localStorage.setItem('crm_db_users', JSON.stringify(users));
   }, [users]);
@@ -387,6 +515,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     localStorage.setItem('crm_db_sync_queue', JSON.stringify(offlineSyncQueue));
   }, [offlineSyncQueue]);
+  useEffect(() => {
+    localStorage.setItem('crm_db_visual_templates', JSON.stringify(visualTemplates));
+  }, [visualTemplates]);
 
   // Unified Audit Trail
   const logAudit = (action: string, entity_type: string, entity_id: string, details: string) => {
@@ -475,6 +606,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     setDeals((prev) => [newDeal, ...prev]);
     logAudit('crm.deal_add', 'deal', newDeal.id, `Membuat pipeline deal baru: ${deal.title}`);
+  };
+
+  const updateContact = (id: string, updatedFields: Partial<Contact>) => {
+    setContacts((prev) => prev.map((c) => c.id === id ? { ...c, ...updatedFields } : c));
+    logAudit('crm.contact_update', 'contact', id, `Memperbarui data kontak: ${updatedFields.name || 'ID ' + id}`);
+  };
+
+  const deleteContact = (id: string) => {
+    const contact = contacts.find(c => c.id === id);
+    setContacts((prev) => prev.filter((c) => c.id !== id));
+    logAudit('crm.contact_delete', 'contact', id, `Menghapus kontak: ${contact?.name || id}`);
+  };
+
+  const updateCompany = (id: string, updatedFields: Partial<Company>) => {
+    setCompanies((prev) => prev.map((c) => c.id === id ? { ...c, ...updatedFields } : c));
+    logAudit('crm.company_update', 'company', id, `Memperbarui data perusahaan: ${updatedFields.name || 'ID ' + id}`);
+  };
+
+  const deleteCompany = (id: string) => {
+    const company = companies.find(c => c.id === id);
+    setCompanies((prev) => prev.filter((c) => c.id !== id));
+    logAudit('crm.company_delete', 'company', id, `Menghapus perusahaan: ${company?.name || id}`);
+  };
+
+  const updateDeal = (id: string, updatedFields: Partial<Deal>) => {
+    setDeals((prev) => prev.map((d) => d.id === id ? { ...d, ...updatedFields } : d));
+    logAudit('crm.deal_update', 'deal', id, `Memperbarui data deal: ${updatedFields.title || 'ID ' + id}`);
+  };
+
+  const deleteDeal = (id: string) => {
+    const deal = deals.find(d => d.id === id);
+    setDeals((prev) => prev.filter((d) => d.id !== id));
+    logAudit('crm.deal_delete', 'deal', id, `Menghapus deal: ${deal?.title || id}`);
   };
 
   const updateDealStage = (dealId: string, stageId: string) => {
@@ -711,8 +875,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       doc_number = `INV/${year}/${month}/${seq}`;
     } else if (doc.doc_type === 'receipt') {
       doc_number = `KWT/${year}/${month}/${seq}`;
-    } else {
+    } else if (doc.doc_type === 'letter') {
       doc_number = `HR-SRT/${year}/${month}/${seq}`;
+    } else {
+      doc_number = `DOC/${year}/${month}/${seq}`;
     }
 
     const newDoc: Document = {
@@ -843,6 +1009,63 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logAudit('template.update', 'approval_template', template.id, `Memperbarui template persetujuan: ${template.name}`);
   };
 
+  const updateVisualTemplate = (template: VisualTemplate) => {
+    setVisualTemplates((prev) => prev.map((t) => t.id === template.id ? template : t));
+    logAudit('template.update', 'visual_template', template.id, `Memperbarui layout template visual: ${template.name}`);
+  };
+
+  const createVisualTemplate = (name: string, baseType: 'invoice' | 'receipt' | 'letter') => {
+    const id = `vt-custom-${Date.now()}`;
+    const doc_type = `custom-${Date.now()}`;
+    
+    // Find the base template elements to copy from
+    const baseTemplate = visualTemplates.find(t => t.doc_type === baseType) || MOCK_VISUAL_TEMPLATES.find(t => t.doc_type === baseType);
+    const elementsCopy = baseTemplate 
+      ? JSON.parse(JSON.stringify(baseTemplate.elements))
+      : [];
+
+    const newTemplate: VisualTemplate = {
+      id,
+      name,
+      doc_type,
+      paper_size: 'A4',
+      paper_orientation: 'portrait',
+      logo_text: 'PT Domus Somnia Indonesia',
+      header_address: 'Jl. Jenderal Sudirman Kav. 21, Mega Kuningan, Jakarta Selatan',
+      header_phone_email: 'Telp: (021) 555-0192 | Email: finance@domus-somnia.com',
+      font_family: 'Inter',
+      elements: elementsCopy
+    };
+
+    // Auto-create approval template for this custom type
+    const newApprovalTemplate: ApprovalTemplate = {
+      id: `apt-${doc_type}`,
+      name: `Alur Approval ${name}`,
+      doc_type: doc_type as any,
+      levels: [
+        { level: 1, role: 'Admin / HR Lead', user_id: 'usr-1', required: true }
+      ]
+    };
+    
+    setApprovalTemplates((prev) => [...prev, newApprovalTemplate]);
+    setVisualTemplates((prev) => [...prev, newTemplate]);
+    logAudit('template.create', 'visual_template', id, `Membuat layout template visual kustom baru: ${name}`);
+  };
+
+  const addHousingProject = (project: Omit<HousingProject, 'id'>) => {
+    const newProject = {
+      ...project,
+      id: `proj-${Date.now()}`
+    };
+    setHousingProjects(prev => [...prev, newProject]);
+    logAudit('housing.project_add', 'housing_project', newProject.id, `Menambahkan perumahan baru: ${project.name}`);
+  };
+
+  const deleteHousingProject = (id: string) => {
+    setHousingProjects(prev => prev.filter(p => p.id !== id));
+    logAudit('housing.project_delete', 'housing_project', id, `Menghapus perumahan`);
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -860,6 +1083,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         documents,
         auditLogs,
         offlineSyncQueue,
+        visualTemplates,
+        housingProjects,
         
         switchUser,
         inviteUser,
@@ -869,9 +1094,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateOffice,
         
         addContact,
+        updateContact,
+        deleteContact,
         addCompany,
+        updateCompany,
+        deleteCompany,
         addDeal,
+        updateDeal,
+        deleteDeal,
         updateDealStage,
+        addHousingProject,
+        deleteHousingProject,
         
         addTask,
         updateTaskStatus,
@@ -888,7 +1121,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         approveDocument,
         rejectDocument,
         revokeDocument,
-        updateApprovalTemplate
+        updateApprovalTemplate,
+        updateVisualTemplate,
+        createVisualTemplate
       }}
     >
       {children}

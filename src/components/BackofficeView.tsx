@@ -23,18 +23,23 @@ export const BackofficeView: React.FC = () => {
     updateUserRole,
     addOffice,
     updateOffice,
-    currentUser
+    currentUser,
+    housingProjects,
+    addHousingProject,
+    deleteHousingProject
   } = useApp();
 
-  const [activeSubTab, setActiveSubTab] = useState<'users' | 'offices' | 'audit'>('users');
+  const [activeSubTab, setActiveSubTab] = useState<'users' | 'offices' | 'audit' | 'housing'>('users');
   
   // Modals visibility
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showOfficeModal, setShowOfficeModal] = useState(false);
+  const [showHousingModal, setShowHousingModal] = useState(false);
 
   // Form states
   const [inviteForm, setInviteForm] = useState({ name: '', email: '', role: 'staff' as any, department: '' });
   const [officeForm, setOfficeForm] = useState({ name: '', latitude: 0, longitude: 0, radius_meters: 100, is_active: true });
+  const [housingForm, setHousingForm] = useState({ name: '', location: '', price_range: '' });
 
   const handleInviteSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,6 +57,15 @@ export const BackofficeView: React.FC = () => {
     addOffice(officeForm);
     setOfficeForm({ name: '', latitude: 0, longitude: 0, radius_meters: 100, is_active: true });
     setShowOfficeModal(false);
+  };
+
+  const handleHousingSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!housingForm.name || !housingForm.location) return;
+
+    addHousingProject(housingForm);
+    setHousingForm({ name: '', location: '', price_range: '' });
+    setShowHousingModal(false);
   };
 
   // Auth Guard check in view
@@ -91,12 +105,17 @@ export const BackofficeView: React.FC = () => {
               <MapPin size={16} /> Tambah Kantor Baru
             </button>
           )}
+          {activeSubTab === 'housing' && (
+            <button className="btn btn-primary" onClick={() => setShowHousingModal(true)}>
+              <Plus size={16} /> Tambah Perumahan Baru
+            </button>
+          )}
         </div>
       </div>
 
       {/* VIEW SUB-TABS */}
       <div className="card" style={{ padding: '12px 18px' }}>
-        <div style={{ display: 'flex', gap: 4, backgroundColor: 'var(--bg)', padding: 4, borderRadius: 'var(--radius-sm)', width: 'fit-content' }}>
+        <div style={{ display: 'flex', gap: 4, backgroundColor: 'var(--bg)', padding: 4, borderRadius: 'var(--radius-sm)', width: 'fit-content', flexWrap: 'wrap' }}>
           <button
             onClick={() => setActiveSubTab('users')}
             className={`btn ${activeSubTab === 'users' ? 'btn-primary' : 'btn-ghost'}`}
@@ -110,6 +129,13 @@ export const BackofficeView: React.FC = () => {
             style={{ minHeight: 32, padding: '4px 16px', fontSize: 13 }}
           >
             Lokasi Kantor
+          </button>
+          <button
+            onClick={() => setActiveSubTab('housing')}
+            className={`btn ${activeSubTab === 'housing' ? 'btn-primary' : 'btn-ghost'}`}
+            style={{ minHeight: 32, padding: '4px 16px', fontSize: 13 }}
+          >
+            Proyek Perumahan
           </button>
           <button
             onClick={() => setActiveSubTab('audit')}
@@ -281,6 +307,53 @@ export const BackofficeView: React.FC = () => {
         </div>
       )}
 
+      {/* TAB CONTENT: HOUSING PROJECTS */}
+      {activeSubTab === 'housing' && (
+        <div className="card">
+          <div className="card-header">
+            <span className="card-title">Daftar Proyek Perumahan Developer</span>
+          </div>
+
+          <div className="table-container">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Nama Perumahan / Klaster</th>
+                  <th>Lokasi Wilayah</th>
+                  <th>Kisaran Harga Jual</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {housingProjects.map((project) => (
+                  <tr key={project.id}>
+                    <td style={{ fontWeight: 600 }}>{project.name}</td>
+                    <td>{project.location}</td>
+                    <td><span className="badge badge-primary">{project.price_range || '-'}</span></td>
+                    <td>
+                      <button
+                        className="btn btn-danger"
+                        style={{ minHeight: 28, padding: '4px 10px', fontSize: 11 }}
+                        onClick={() => deleteHousingProject(project.id)}
+                      >
+                        Hapus
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {housingProjects.length === 0 && (
+                  <tr>
+                    <td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
+                      Belum ada proyek perumahan yang terdaftar.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* INVITE KARYAWAN MODAL */}
       {showInviteModal && (
         <div className="modal-overlay">
@@ -406,6 +479,56 @@ export const BackofficeView: React.FC = () => {
             <div className="modal-footer">
               <button type="button" className="btn btn-secondary" onClick={() => setShowOfficeModal(false)}>Batal</button>
               <button type="submit" className="btn btn-primary">Simpan Kantor</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* HOUSING CREATOR MODAL */}
+      {showHousingModal && (
+        <div className="modal-overlay">
+          <form className="modal-content" onSubmit={handleHousingSubmit}>
+            <div className="modal-header">
+              <h3 style={{ fontSize: 16 }}>Tambah Proyek Perumahan Baru</h3>
+              <button type="button" className="btn btn-ghost" style={{ minHeight: 'unset', padding: 4 }} onClick={() => setShowHousingModal(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label className="form-label">Nama Perumahan / Klaster *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Bukit Sentosa Cluster"
+                  className="input"
+                  value={housingForm.name}
+                  onChange={(e) => setHousingForm({ ...housingForm, name: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Lokasi Wilayah *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Bogor Selatan"
+                  className="input"
+                  value={housingForm.location}
+                  onChange={(e) => setHousingForm({ ...housingForm, location: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Kisaran Harga Jual (e.g. Rp 500jt - 900jt)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Rp 600jt - 1.2M"
+                  className="input"
+                  value={housingForm.price_range}
+                  onChange={(e) => setHousingForm({ ...housingForm, price_range: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" onClick={() => setShowHousingModal(false)}>Batal</button>
+              <button type="submit" className="btn btn-primary">Simpan Proyek</button>
             </div>
           </form>
         </div>

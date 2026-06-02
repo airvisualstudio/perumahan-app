@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { formatRupiah } from '../utils/speller';
 import {
@@ -11,8 +11,174 @@ import {
   ChevronRight,
   Trash2,
   Building,
-  Tag
+  Tag,
+  Pencil,
+  Mail,
+  Phone
 } from 'lucide-react';
+
+interface KanbanColumnProps {
+  stage: {
+    id: string;
+    name: string;
+    color: string;
+  };
+  stageDeals: any[];
+  contacts: any[];
+  draggingDealId: string | null;
+  setDraggingDealId: (id: string | null) => void;
+  updateDealStage: (dealId: string, stageId: string) => void;
+  moveDealStage: (dealId: string, direction: 'forward' | 'backward') => void;
+  dealStages: any[];
+  onEditDeal: (deal: any) => void;
+  onDeleteDeal: (id: string) => void;
+}
+
+const KanbanColumn: React.FC<KanbanColumnProps> = ({
+  stage,
+  stageDeals,
+  contacts,
+  draggingDealId,
+  setDraggingDealId,
+  updateDealStage,
+  moveDealStage,
+  dealStages,
+  onEditDeal,
+  onDeleteDeal
+}) => {
+  const [isDragOver, setIsDragOver] = useState(false);
+  const dragCounter = useRef(0);
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounter.current++;
+    if (dragCounter.current > 0) {
+      setIsDragOver(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounter.current--;
+    if (dragCounter.current === 0) {
+      setIsDragOver(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounter.current = 0;
+    setIsDragOver(false);
+    const dealId = e.dataTransfer.getData('text/plain');
+    if (dealId) {
+      updateDealStage(dealId, stage.id);
+    }
+    setDraggingDealId(null);
+  };
+
+  return (
+    <div
+      className={`kanban-column ${isDragOver ? 'drag-over' : ''}`}
+      onDragOver={(e) => e.preventDefault()}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      <div className="kanban-column-title" style={{ borderBottomColor: stage.color }}>
+        <span>{stage.name}</span>
+        <span className="badge badge-neutral" style={{ fontSize: 10 }}>{stageDeals.length}</span>
+      </div>
+      
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, overflowY: 'auto', maxHeight: '550px' }}>
+        {stageDeals.map((deal) => {
+          const contact = contacts.find(c => c.id === deal.contact_id);
+          return (
+            <div
+              key={deal.id}
+              className={`kanban-card ${draggingDealId === deal.id ? 'dragging' : ''}`}
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.setData('text/plain', deal.id);
+                e.dataTransfer.effectAllowed = 'move';
+                setDraggingDealId(deal.id);
+              }}
+              onDragEnd={() => {
+                setDraggingDealId(null);
+                setIsDragOver(false);
+                dragCounter.current = 0;
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6, width: '100%' }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }} title={deal.title}>
+                  {deal.title}
+                </span>
+                <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
+                  <button
+                    className="btn btn-ghost"
+                    style={{ padding: 2, minHeight: 'unset', width: 22, height: 22 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditDeal(deal);
+                    }}
+                  >
+                    <Pencil size={10} />
+                  </button>
+                  <button
+                    className="btn btn-ghost text-danger"
+                    style={{ padding: 2, minHeight: 'unset', width: 22, height: 22, color: 'var(--danger)' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteDeal(deal.id);
+                    }}
+                  >
+                    <Trash2 size={10} />
+                  </button>
+                </div>
+              </div>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--primary)' }}>
+                {formatRupiah(deal.value)}
+              </span>
+              {contact && (
+                <div style={{ fontSize: 11, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Building size={12} /> {contact.name}
+                </div>
+              )}
+              <p style={{ fontSize: 11, color: 'var(--text-muted)', borderTop: '1px solid var(--border)', paddingTop: 6, margin: 0 }}>
+                Est: {deal.expected_close}
+              </p>
+              
+              {/* Quick controls for pipeline shifts */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6, marginTop: 4 }}>
+                <button
+                  className="btn btn-secondary"
+                  style={{ flex: 1, minHeight: 24, padding: '2px 4px', fontSize: 11 }}
+                  onClick={() => moveDealStage(deal.id, 'backward')}
+                  disabled={dealStages.findIndex(s => s.id === stage.id) === 0}
+                >
+                  <ChevronLeft size={12} /> Prev
+                </button>
+                <button
+                  className="btn btn-secondary"
+                  style={{ flex: 1, minHeight: 24, padding: '2px 4px', fontSize: 11 }}
+                  onClick={() => moveDealStage(deal.id, 'forward')}
+                  disabled={dealStages.findIndex(s => s.id === stage.id) === dealStages.length - 1}
+                >
+                  Next <ChevronRight size={12} />
+                </button>
+              </div>
+            </div>
+          );
+        })}
+        
+        {stageDeals.length === 0 && (
+          <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px 0', fontSize: 12, border: '1px dashed var(--border)', borderRadius: 'var(--radius-sm)' }}>
+            Kosong
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export const CRMView: React.FC = () => {
   const {
@@ -21,22 +187,35 @@ export const CRMView: React.FC = () => {
     dealStages,
     deals,
     addContact,
+    updateContact,
+    deleteContact,
     addCompany,
+    updateCompany,
+    deleteCompany,
     addDeal,
+    updateDeal,
+    deleteDeal,
     updateDealStage,
-    currentUser
+    currentUser,
+    housingProjects
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<'pipeline' | 'contacts' | 'companies'>('pipeline');
   const [searchQuery, setSearchQuery] = useState('');
+  const [draggingDealId, setDraggingDealId] = useState<string | null>(null);
   
   // Modals visibility
   const [showContactModal, setShowContactModal] = useState(false);
   const [showCompanyModal, setShowCompanyModal] = useState(false);
   const [showDealModal, setShowDealModal] = useState(false);
 
+  // Editing states
+  const [editingContactId, setEditingContactId] = useState<string | null>(null);
+  const [editingCompanyId, setEditingCompanyId] = useState<string | null>(null);
+  const [editingDealId, setEditingDealId] = useState<string | null>(null);
+
   // Form states
-  const [contactForm, setContactForm] = useState({ name: '', email: '', phone: '', company_id: '', tags: '', notes: '' });
+  const [contactForm, setContactForm] = useState({ name: '', email: '', phone: '', company_id: '', tags: '', notes: '', housing_interest: '', lead_source: '' });
   const [companyForm, setCompanyForm] = useState({ name: '', industry: '', size: '1-10', website: '', address: '' });
   const [dealForm, setDealForm] = useState({ title: '', value: '', stage_id: '', contact_id: '', notes: '', expected_close: '' });
 
@@ -64,17 +243,35 @@ export const CRMView: React.FC = () => {
     e.preventDefault();
     if (!contactForm.name) return;
     
-    addContact({
-      name: contactForm.name,
-      email: contactForm.email,
-      phone: contactForm.phone,
-      company_id: contactForm.company_id,
-      tags: contactForm.tags ? contactForm.tags.split(',').map(t => t.trim()) : [],
-      notes: contactForm.notes,
-      assigned_to: currentUser.id
-    });
+    const parsedTags = contactForm.tags ? contactForm.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
     
-    setContactForm({ name: '', email: '', phone: '', company_id: '', tags: '', notes: '' });
+    if (editingContactId) {
+      updateContact(editingContactId, {
+        name: contactForm.name,
+        email: contactForm.email,
+        phone: contactForm.phone,
+        company_id: contactForm.company_id,
+        tags: parsedTags,
+        notes: contactForm.notes,
+        housing_interest: contactForm.housing_interest,
+        lead_source: contactForm.lead_source
+      });
+    } else {
+      addContact({
+        name: contactForm.name,
+        email: contactForm.email,
+        phone: contactForm.phone,
+        company_id: contactForm.company_id,
+        tags: parsedTags,
+        notes: contactForm.notes,
+        assigned_to: currentUser.id,
+        housing_interest: contactForm.housing_interest,
+        lead_source: contactForm.lead_source
+      });
+    }
+    
+    setContactForm({ name: '', email: '', phone: '', company_id: '', tags: '', notes: '', housing_interest: '', lead_source: '' });
+    setEditingContactId(null);
     setShowContactModal(false);
   };
 
@@ -82,8 +279,14 @@ export const CRMView: React.FC = () => {
     e.preventDefault();
     if (!companyForm.name) return;
     
-    addCompany(companyForm);
+    if (editingCompanyId) {
+      updateCompany(editingCompanyId, companyForm);
+    } else {
+      addCompany(companyForm);
+    }
+    
     setCompanyForm({ name: '', industry: '', size: '1-10', website: '', address: '' });
+    setEditingCompanyId(null);
     setShowCompanyModal(false);
   };
 
@@ -91,17 +294,31 @@ export const CRMView: React.FC = () => {
     e.preventDefault();
     if (!dealForm.title || !dealForm.stage_id) return;
     
-    addDeal({
-      title: dealForm.title,
-      value: Number(dealForm.value) || 0,
-      stage_id: dealForm.stage_id,
-      contact_id: dealForm.contact_id,
-      assigned_to: currentUser.id,
-      expected_close: dealForm.expected_close,
-      notes: dealForm.notes
-    });
+    const val = Number(dealForm.value) || 0;
+    
+    if (editingDealId) {
+      updateDeal(editingDealId, {
+        title: dealForm.title,
+        value: val,
+        stage_id: dealForm.stage_id,
+        contact_id: dealForm.contact_id,
+        notes: dealForm.notes,
+        expected_close: dealForm.expected_close
+      });
+    } else {
+      addDeal({
+        title: dealForm.title,
+        value: val,
+        stage_id: dealForm.stage_id,
+        contact_id: dealForm.contact_id,
+        assigned_to: currentUser.id,
+        expected_close: dealForm.expected_close,
+        notes: dealForm.notes
+      });
+    }
     
     setDealForm({ title: '', value: '', stage_id: '', contact_id: '', notes: '', expected_close: '' });
+    setEditingDealId(null);
     setShowDealModal(false);
   };
 
@@ -190,66 +407,38 @@ export const CRMView: React.FC = () => {
 
       {/* Tab Contents: PIPELINE DEALS (Kanban) */}
       {activeTab === 'pipeline' && (
-        <div className="kanban-board">
+        <div className={`kanban-board ${draggingDealId ? 'dragging-active' : ''}`}>
           {dealStages.map((stage) => {
             const stageDeals = deals.filter(d => d.stage_id === stage.id);
             return (
-              <div key={stage.id} className="kanban-column">
-                <div className="kanban-column-title" style={{ borderBottomColor: stage.color }}>
-                  <span>{stage.name}</span>
-                  <span className="badge badge-neutral" style={{ fontSize: 10 }}>{stageDeals.length}</span>
-                </div>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, overflowY: 'auto', maxHeight: '550px' }}>
-                  {stageDeals.map((deal) => {
-                    const contact = contacts.find(c => c.id === deal.contact_id);
-                    return (
-                      <div key={deal.id} className="kanban-card">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-main)' }}>{deal.title}</span>
-                        </div>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--primary)' }}>
-                          {formatRupiah(deal.value)}
-                        </span>
-                        {contact && (
-                          <div style={{ fontSize: 11, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <Building size={12} /> {contact.name}
-                          </div>
-                        )}
-                        <p style={{ fontSize: 11, color: 'var(--text-muted)', borderTop: '1px solid var(--border)', paddingTop: 6, margin: 0 }}>
-                          Est: {deal.expected_close}
-                        </p>
-                        
-                        {/* Quick controls for pipeline shifts */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6, marginTop: 4 }}>
-                          <button
-                            className="btn btn-secondary"
-                            style={{ flex: 1, minHeight: 24, padding: '2px 4px', fontSize: 11 }}
-                            onClick={() => moveDealStage(deal.id, 'backward')}
-                            disabled={dealStages.findIndex(s => s.id === stage.id) === 0}
-                          >
-                            <ChevronLeft size={12} /> Prev
-                          </button>
-                          <button
-                            className="btn btn-secondary"
-                            style={{ flex: 1, minHeight: 24, padding: '2px 4px', fontSize: 11 }}
-                            onClick={() => moveDealStage(deal.id, 'forward')}
-                            disabled={dealStages.findIndex(s => s.id === stage.id) === dealStages.length - 1}
-                          >
-                            Next <ChevronRight size={12} />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  
-                  {stageDeals.length === 0 && (
-                    <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px 0', fontSize: 12, border: '1px dashed var(--border)', borderRadius: 'var(--radius-sm)' }}>
-                      Kosong
-                    </div>
-                  )}
-                </div>
-              </div>
+              <KanbanColumn
+                key={stage.id}
+                stage={stage}
+                stageDeals={stageDeals}
+                contacts={contacts}
+                draggingDealId={draggingDealId}
+                setDraggingDealId={setDraggingDealId}
+                updateDealStage={updateDealStage}
+                moveDealStage={moveDealStage}
+                dealStages={dealStages}
+                onEditDeal={(deal) => {
+                  setEditingDealId(deal.id);
+                  setDealForm({
+                    title: deal.title,
+                    value: String(deal.value),
+                    stage_id: deal.stage_id,
+                    contact_id: deal.contact_id || '',
+                    notes: deal.notes || '',
+                    expected_close: deal.expected_close || ''
+                  });
+                  setShowDealModal(true);
+                }}
+                onDeleteDeal={(id) => {
+                  if (confirm('Apakah Anda yakin ingin menghapus deal ini?')) {
+                    deleteDeal(id);
+                  }
+                }}
+              />
             );
           })}
         </div>
@@ -257,86 +446,230 @@ export const CRMView: React.FC = () => {
 
       {/* Tab Contents: CONTACTS */}
       {activeTab === 'contacts' && (
-        <div className="table-container">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Nama Lengkap</th>
-                <th>Email</th>
-                <th>Telepon</th>
-                <th>Perusahaan</th>
-                <th>Tags</th>
-                <th>Catatan</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredContacts.map(c => {
-                const comp = companies.find(co => co.id === c.company_id);
-                return (
-                  <tr key={c.id}>
-                    <td style={{ fontWeight: 600 }}>{c.name}</td>
-                    <td>{c.email || '-'}</td>
-                    <td>{c.phone || '-'}</td>
-                    <td>{comp ? comp.name : '-'}</td>
-                    <td>
-                      {c.tags.map(t => (
-                        <span key={t} className="badge badge-primary" style={{ marginRight: 4, fontSize: 9 }}>{t}</span>
-                      ))}
-                    </td>
-                    <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{c.notes || '-'}</td>
-                  </tr>
-                );
-              })}
-              {filteredContacts.length === 0 && (
-                <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-                    Kontak tidak ditemukan.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '12px', marginTop: '12px' }}>
+          {filteredContacts.map(c => {
+            const comp = companies.find(co => co.id === c.company_id);
+            const project = housingProjects.find(p => p.id === c.housing_interest);
+            const initials = c.name ? c.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '?';
+            return (
+              <div key={c.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 10, position: 'relative' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--primary-light)',
+                    color: 'var(--primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 700,
+                    fontSize: 10
+                  }}>
+                    {initials}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h4 style={{ fontSize: 10, fontWeight: 700, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={c.name}>
+                      {c.name}
+                    </h4>
+                    {comp && (
+                      <span style={{ fontSize: 9, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 3, marginTop: 1 }}>
+                        <Building size={9} /> {comp.name}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Actions */}
+                  <div style={{ display: 'flex', gap: 2 }}>
+                    <button
+                      className="btn btn-ghost"
+                      style={{ padding: 2, minHeight: 'unset', width: 22, height: 22 }}
+                      onClick={() => {
+                        setEditingContactId(c.id);
+                        setContactForm({
+                          name: c.name,
+                          email: c.email || '',
+                          phone: c.phone || '',
+                          company_id: c.company_id || '',
+                          tags: c.tags.join(', '),
+                          notes: c.notes || '',
+                          housing_interest: c.housing_interest || '',
+                          lead_source: c.lead_source || ''
+                        });
+                        setShowContactModal(true);
+                      }}
+                    >
+                      <Pencil size={9} />
+                    </button>
+                    <button
+                      className="btn btn-ghost text-danger"
+                      style={{ padding: 2, minHeight: 'unset', width: 22, height: 22, color: 'var(--danger)' }}
+                      onClick={() => {
+                        if (confirm(`Apakah Anda yakin ingin menghapus kontak "${c.name}"?`)) {
+                          deleteContact(c.id);
+                        }
+                      }}
+                    >
+                      <Trash2 size={9} />
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, borderTop: '1px solid var(--border)', paddingTop: 8, fontSize: 9 }}>
+                  {c.email && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--text-muted)' }}>
+                      <Mail size={10} /> <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.email}</span>
+                    </div>
+                  )}
+                  {c.phone && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--text-muted)' }}>
+                      <Phone size={10} /> <span>{c.phone}</span>
+                    </div>
+                  )}
+                  
+                  {/* Housing Developer Custom Badges */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 2, borderTop: '1px dashed var(--border)', paddingTop: 4 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: 'var(--text-muted)' }}>Minat:</span>
+                      <span style={{ fontWeight: 600, color: 'var(--primary)' }}>
+                        {project ? project.name : '-'}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: 'var(--text-muted)' }}>Sumber Lead:</span>
+                      {c.lead_source ? <span className="badge badge-neutral" style={{ fontSize: 8, padding: '2px 4px' }}>{c.lead_source}</span> : <span>-</span>}
+                    </div>
+                  </div>
+                </div>
+
+                {c.tags.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2, marginTop: 2 }}>
+                    {c.tags.map(t => (
+                      <span key={t} className="badge badge-primary" style={{ fontSize: 8, padding: '1px 3px' }}>{t}</span>
+                    ))}
+                  </div>
+                )}
+
+                {c.notes && (
+                  <div style={{
+                    fontSize: 8,
+                    color: 'var(--text-muted)',
+                    backgroundColor: 'var(--bg)',
+                    padding: 6,
+                    borderRadius: 'var(--radius-sm)',
+                    fontStyle: 'italic',
+                    marginTop: 'auto',
+                    borderLeft: '2px solid var(--primary)'
+                  }}>
+                    {c.notes}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {filteredContacts.length === 0 && (
+            <div className="card" style={{ gridColumn: '1 / -1', padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 10 }}>
+              Kontak tidak ditemukan.
+            </div>
+          )}
         </div>
       )}
 
       {/* Tab Contents: COMPANIES */}
       {activeTab === 'companies' && (
-        <div className="table-container">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Nama Perusahaan</th>
-                <th>Industri</th>
-                <th>Ukuran</th>
-                <th>Website</th>
-                <th>Alamat</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredCompanies.map(co => (
-                <tr key={co.id}>
-                  <td style={{ fontWeight: 600 }}>{co.name}</td>
-                  <td>{co.industry}</td>
-                  <td><span className="badge badge-neutral">{co.size} Karyawan</span></td>
-                  <td>
-                    {co.website ? (
-                      <a href={`https://${co.website}`} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '12px', marginTop: '12px' }}>
+          {filteredCompanies.map(co => {
+            return (
+              <div key={co.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 10, position: 'relative' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'var(--success-light)',
+                    color: 'var(--success)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 700,
+                    fontSize: 10
+                  }}>
+                    <Building size={12} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h4 style={{ fontSize: 10, fontWeight: 700, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={co.name}>
+                      {co.name}
+                    </h4>
+                    <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>
+                      {co.industry || 'Industri Lainnya'}
+                    </span>
+                  </div>
+
+                  {/* Actions */}
+                  <div style={{ display: 'flex', gap: 2 }}>
+                    <button
+                      className="btn btn-ghost"
+                      style={{ padding: 2, minHeight: 'unset', width: 22, height: 22 }}
+                      onClick={() => {
+                        setEditingCompanyId(co.id);
+                        setCompanyForm({
+                          name: co.name,
+                          industry: co.industry || '',
+                          size: co.size || '1-10',
+                          website: co.website || '',
+                          address: co.address || ''
+                        });
+                        setShowCompanyModal(true);
+                      }}
+                    >
+                      <Pencil size={9} />
+                    </button>
+                    <button
+                      className="btn btn-ghost text-danger"
+                      style={{ padding: 2, minHeight: 'unset', width: 22, height: 22, color: 'var(--danger)' }}
+                      onClick={() => {
+                        if (confirm(`Apakah Anda yakin ingin menghapus perusahaan "${co.name}"?`)) {
+                          deleteCompany(co.id);
+                        }
+                      }}
+                    >
+                      <Trash2 size={9} />
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, borderTop: '1px solid var(--border)', paddingTop: 8, fontSize: 9 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>Karyawan:</span>
+                    <span className="badge badge-neutral" style={{ fontSize: 8, padding: '2px 4px' }}>{co.size} Karyawan</span>
+                  </div>
+
+                  {co.website && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: 'var(--text-muted)' }}>Website:</span>
+                      <a href={`https://${co.website}`} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>
                         {co.website}
                       </a>
-                    ) : '-'}
-                  </td>
-                  <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{co.address}</td>
-                </tr>
-              ))}
-              {filteredCompanies.length === 0 && (
-                <tr>
-                  <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-                    Perusahaan tidak ditemukan.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                    </div>
+                  )}
+
+                  {co.address && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 2, borderTop: '1px dashed var(--border)', paddingTop: 4 }}>
+                      <span style={{ color: 'var(--text-muted)' }}>Alamat Kantor:</span>
+                      <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: '1.3', fontSize: 8 }}>
+                        {co.address}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+          {filteredCompanies.length === 0 && (
+            <div className="card" style={{ gridColumn: '1 / -1', padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 10 }}>
+              Perusahaan tidak ditemukan.
+            </div>
+          )}
         </div>
       )}
 
@@ -388,6 +721,38 @@ export const CRMView: React.FC = () => {
                   {companies.map(co => (
                     <option key={co.id} value={co.id}>{co.name}</option>
                   ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Minat Perumahan</label>
+                <select
+                  className="select"
+                  value={contactForm.housing_interest}
+                  onChange={(e) => setContactForm({ ...contactForm, housing_interest: e.target.value })}
+                >
+                  <option value="">-- Pilih Proyek Perumahan --</option>
+                  {housingProjects.map(proj => (
+                    <option key={proj.id} value={proj.id}>
+                      {proj.name} ({proj.location} - {proj.price_range})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Sumber Lead / Kontak</label>
+                <select
+                  className="select"
+                  value={contactForm.lead_source}
+                  onChange={(e) => setContactForm({ ...contactForm, lead_source: e.target.value })}
+                >
+                  <option value="">-- Pilih Sumber Lead --</option>
+                  <option value="Instagram Ad">Instagram Ad</option>
+                  <option value="Facebook Ad">Facebook Ad</option>
+                  <option value="Walk-in / Kantor Pemasaran">Walk-in / Kantor Pemasaran</option>
+                  <option value="Agent / Broker">Agent / Broker</option>
+                  <option value="WhatsApp">WhatsApp</option>
+                  <option value="Website">Website</option>
+                  <option value="Rekomendasi / Lainnya">Rekomendasi / Lainnya</option>
                 </select>
               </div>
               <div className="form-group">

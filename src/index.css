@@ -95,6 +95,7 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  font-size: 11px;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -118,13 +119,13 @@ button, input, select, textarea {
 
 .main-content {
   flex: 1;
-  padding: 24px;
+  padding: 14px;
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 14px;
   min-width: 0; /* Prevents flex items from breaking layouts */
 }
 
@@ -137,7 +138,7 @@ button, input, select, textarea {
 
 /* Sidebar Styling */
 .sidebar {
-  width: 260px;
+  width: 190px;
   background-color: var(--bg-card);
   border-right: 1px solid var(--border);
   display: flex;
@@ -154,7 +155,7 @@ button, input, select, textarea {
 }
 
 .sidebar-header {
-  padding: 20px;
+  padding: 12px 14px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -166,7 +167,7 @@ button, input, select, textarea {
 .sidebar-logo {
   font-family: var(--font-heading);
   font-weight: 800;
-  font-size: 20px;
+  font-size: 14px;
   color: var(--primary);
   background: linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%);
   -webkit-background-clip: text;
@@ -176,23 +177,23 @@ button, input, select, textarea {
 
 .sidebar-menu {
   flex: 1;
-  padding: 16px 12px;
+  padding: 10px 8px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   overflow-y: auto;
 }
 
 .sidebar-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
+  gap: 8px;
+  padding: 6px 10px;
   border-radius: var(--radius-sm);
   color: var(--text-muted);
   text-decoration: none;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 10px;
   font-weight: 500;
   border: none;
   background: transparent;
@@ -207,11 +208,11 @@ button, input, select, textarea {
 }
 
 .sidebar-footer {
-  padding: 16px;
+  padding: 10px;
   border-top: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 /* Premium Card Components */
@@ -219,7 +220,7 @@ button, input, select, textarea {
   background-color: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 24px;
+  padding: 14px 16px;
   box-shadow: var(--shadow);
   position: relative;
   overflow: hidden;
@@ -237,11 +238,11 @@ button, input, select, textarea {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 .card-title {
-  font-size: 16px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--text-main);
 }
@@ -250,19 +251,19 @@ button, input, select, textarea {
 .grid-cols-4 {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  gap: 12px;
 }
 
 .grid-cols-3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: 12px;
 }
 
 .grid-cols-2 {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  gap: 12px;
 }
 
 @media (max-width: 1024px) {
@@ -271,9 +272,14 @@ button, input, select, textarea {
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 992px) {
   .grid-cols-4, .grid-cols-3, .grid-cols-2 {
     grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  /* Force grid children to span exactly 1 column on smaller screens to prevent horizontal overflow */
+  .grid-cols-4 > *, .grid-cols-3 > *, .grid-cols-2 > * {
+    grid-column: span 1 / span 1 !important;
   }
 }
 
@@ -281,25 +287,25 @@ button, input, select, textarea {
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 16px;
+  gap: 4px;
+  margin-bottom: 10px;
 }
 
 .form-label {
-  font-size: 13px;
+  font-size: 9px;
   font-weight: 500;
   color: var(--text-main);
 }
 
 .input, .select, .textarea {
   width: 100%;
-  padding: 10px 14px;
+  padding: 6px 10px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background-color: var(--bg-card);
   color: var(--text-main);
   outline: none;
-  font-size: 14px;
+  font-size: 10px;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
@@ -319,17 +325,17 @@ button, input, select, textarea {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 18px;
+  gap: 6px;
+  padding: 6px 12px;
   border-radius: var(--radius-sm);
-  font-size: 14px;
+  font-size: 10px;
   font-weight: 500;
   cursor: pointer;
   border: 1px solid transparent;
   outline: none;
   white-space: nowrap;
   user-select: none;
-  min-height: 40px;
+  min-height: 28px;
   transition: all 0.2s ease;
 }
 
@@ -380,9 +386,9 @@ button, input, select, textarea {
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 8px;
+  padding: 3px 6px;
   border-radius: 9999px;
-  font-size: 11px;
+  font-size: 8px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -425,20 +431,20 @@ button, input, select, textarea {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  font-size: 14px;
+  font-size: 10px;
 }
 
 .table th {
   background-color: var(--bg);
   color: var(--text-muted);
   font-weight: 600;
-  padding: 14px 18px;
+  padding: 8px 12px;
   border-bottom: 1px solid var(--border);
   font-family: var(--font-heading);
 }
 
 .table td {
-  padding: 14px 18px;
+  padding: 8px 12px;
   border-bottom: 1px solid var(--border);
   color: var(--text-main);
 }
@@ -481,7 +487,7 @@ button, input, select, textarea {
 }
 
 .modal-header {
-  padding: 20px 24px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
@@ -489,16 +495,16 @@ button, input, select, textarea {
 }
 
 .modal-body {
-  padding: 24px;
+  padding: 14px 16px;
   overflow-y: auto;
 }
 
 .modal-footer {
-  padding: 16px 24px;
+  padding: 10px 16px;
   border-top: 1px solid var(--border);
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 8px;
 }
 
 /* Scrollbars */
@@ -564,7 +570,7 @@ button, input, select, textarea {
   justify-content: center;
   color: var(--text-muted);
   text-decoration: none;
-  font-size: 10px;
+  font-size: 7px;
   gap: 4px;
   background: transparent;
   border: none;
@@ -576,6 +582,9 @@ button, input, select, textarea {
 }
 
 @media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+  }
   .sidebar {
     display: none;
   }
@@ -585,13 +594,75 @@ button, input, select, textarea {
   .mobile-bottomnav {
     display: grid;
   }
+  
+  /* Mobile padding & spacing optimization */
+  .main-content {
+    padding: 12px;
+    padding-bottom: 74px; /* Space for bottom nav bar */
+    gap: 16px;
+  }
+  
+  .card {
+    padding: 14px;
+  }
+  
+  /* Compact Table styling on mobile */
+  .table th, .table td {
+    padding: 10px 12px !important;
+    font-size: 8px !important;
+  }
+  
+  /* Mobile Modal optimizations */
+  .modal-content {
+    max-height: 95vh;
+  }
+  .modal-header {
+    padding: 12px 16px !important;
+  }
+  .modal-body {
+    padding: 16px !important;
+  }
+  .modal-footer {
+    padding: 12px 16px !important;
+  }
+  
+  /* Taller input fields for touch targets */
+  .input, .select, .textarea, .btn {
+    min-height: 38px;
+  }
+  
+  /* Horizontal swipeable Kanban Board */
+  .kanban-board {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory !important;
+    -webkit-overflow-scrolling: touch;
+    gap: 12px !important;
+    padding-bottom: 12px !important;
+    width: 100%;
+  }
+
+  .kanban-column {
+    flex: 0 0 85% !important;
+    scroll-snap-align: start !important;
+    min-height: 380px !important;
+  }
+  
+  .kanban-board::-webkit-scrollbar {
+    height: 5px;
+  }
+  .kanban-board::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: var(--radius-sm);
+  }
 }
 
 /* Kanban Board Styling */
 .kanban-board {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
   align-items: start;
 }
 
@@ -599,20 +670,20 @@ button, input, select, textarea {
   background-color: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 16px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  min-height: 450px;
+  gap: 8px;
+  min-height: 350px;
 }
 
 .kanban-column-title {
-  font-size: 14px;
+  font-size: 10px;
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 8px;
+  padding-bottom: 6px;
   border-bottom: 2px solid var(--border);
   color: var(--text-main);
   font-family: var(--font-heading);
@@ -622,17 +693,31 @@ button, input, select, textarea {
   background-color: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 14px;
+  padding: 10px;
   box-shadow: var(--shadow);
   cursor: grab;
   user-select: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .kanban-card:active {
   cursor: grabbing;
+}
+
+/* Drag and Drop styles */
+.kanban-column.drag-over {
+  background-color: var(--primary-light) !important;
+  border: 2px dashed var(--primary) !important;
+  transform: scale(1.02);
+  transition: all 0.2s ease;
+}
+
+.kanban-card.dragging {
+  opacity: 0.4;
+  border: 2px dashed var(--primary) !important;
+  background-color: var(--bg) !important;
 }
 
 /* Interactive Timeline */
@@ -695,7 +780,7 @@ button, input, select, textarea {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: 9px;
   font-weight: 500;
   animation: slideDown 0.3s ease-out;
 }
@@ -719,7 +804,7 @@ button, input, select, textarea {
   border-radius: 50%;
   border: none;
   font-weight: 700;
-  font-size: 18px;
+  font-size: 13px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -765,7 +850,27 @@ button, input, select, textarea {
     box-shadow: none !important;
     padding: 0 !important;
   }
+  .document-print-sheet {
+    transform: none !important;
+    position: relative !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background-color: white !important;
+    page-break-inside: avoid;
+  }
+  .document-preview-wrapper {
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .sheet-a4.sheet-portrait { width: 210mm !important; height: 297mm !important; }
+  .sheet-f4.sheet-portrait { width: 215mm !important; height: 330mm !important; }
+  .sheet-a5.sheet-portrait { width: 148mm !important; height: 210mm !important; }
+  .sheet-a4.sheet-landscape { width: 297mm !important; height: 210mm !important; }
+  .sheet-f4.sheet-landscape { width: 330mm !important; height: 215mm !important; }
+  .sheet-a5.sheet-landscape { width: 210mm !important; height: 148mm !important; }
 }
+
 
 @keyframes slideDown {
   from { transform: translateY(-10px); opacity: 0; }
