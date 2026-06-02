@@ -11,6 +11,7 @@ import {
   Send,
   MoreVertical
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const OperationsView: React.FC = () => {
   const {
