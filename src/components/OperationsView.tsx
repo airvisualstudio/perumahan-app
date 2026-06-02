@@ -216,81 +216,110 @@ export const OperationsView: React.FC = () => {
       </div>
 
       {/* TASK CREATOR MODAL */}
-      {showTaskModal && (
-        <div className="modal-overlay">
-          <form className="modal-content" onSubmit={handleTaskSubmit}>
-            <div className="modal-header">
-              <h3 style={{ fontSize: 16 }}>Buat Tugas / Tiket Baru</h3>
-              <button type="button" className="btn btn-ghost" style={{ minHeight: 'unset', padding: 4 }} onClick={() => setShowTaskModal(false)}>✕</button>
-            </div>
-            <div className="modal-body">
-              <div className="form-group">
-                <label className="form-label">Judul Tugas *</label>
-                <input
-                  type="text"
-                  required
-                  className="input"
-                  value={taskForm.title}
-                  onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
-                />
+      <AnimatePresence>
+        {showTaskModal && (
+          <motion.div
+            className="modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+          >
+            <motion.form
+              className="modal-content"
+              onSubmit={handleTaskSubmit}
+              initial={{ scale: 0.95, y: 10 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 10 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+            >
+              <div className="modal-header">
+                <h3 style={{ fontSize: 16 }}>Buat Tugas / Tiket Baru</h3>
+                <button type="button" className="btn btn-ghost" style={{ minHeight: 'unset', padding: 4 }} onClick={() => setShowTaskModal(false)}>✕</button>
               </div>
-              <div className="form-group">
-                <label className="form-label">Deskripsi Pekerjaan</label>
-                <textarea
-                  className="textarea"
-                  rows={3}
-                  value={taskForm.description}
-                  onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
-                />
+              <div className="modal-body">
+                <div className="form-group">
+                  <label className="form-label">Judul Tugas *</label>
+                  <input
+                    type="text"
+                    required
+                    className="input"
+                    value={taskForm.title}
+                    onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Deskripsi Pekerjaan</label>
+                  <textarea
+                    className="textarea"
+                    rows={3}
+                    value={taskForm.description}
+                    onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Penerima Tugas (Assignee) *</label>
+                  <select
+                    required
+                    className="select"
+                    value={taskForm.assignee_id}
+                    onChange={(e) => setTaskForm({ ...taskForm, assignee_id: e.target.value })}
+                  >
+                    <option value="">-- Pilih Anggota Tim --</option>
+                    {users.map(u => (
+                      <option key={u.id} value={u.id}>{u.name} ({u.department})</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Prioritas</label>
+                  <select
+                    className="select"
+                    value={taskForm.priority}
+                    onChange={(e) => setTaskForm({ ...taskForm, priority: e.target.value as any })}
+                  >
+                    <option value="low">Rendah</option>
+                    <option value="medium">Sedang</option>
+                    <option value="high">Tinggi</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Tenggat Waktu (Due Date)</label>
+                  <input
+                    type="date"
+                    className="input"
+                    value={taskForm.due_date}
+                    onChange={(e) => setTaskForm({ ...taskForm, due_date: e.target.value })}
+                  />
+                </div>
               </div>
-              <div className="form-group">
-                <label className="form-label">Penerima Tugas (Assignee) *</label>
-                <select
-                  required
-                  className="select"
-                  value={taskForm.assignee_id}
-                  onChange={(e) => setTaskForm({ ...taskForm, assignee_id: e.target.value })}
-                >
-                  <option value="">-- Pilih Anggota Tim --</option>
-                  {users.map(u => (
-                    <option key={u.id} value={u.id}>{u.name} ({u.department})</option>
-                  ))}
-                </select>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowTaskModal(false)}>Batal</button>
+                <button type="submit" className="btn btn-primary">Simpan</button>
               </div>
-              <div className="form-group">
-                <label className="form-label">Prioritas</label>
-                <select
-                  className="select"
-                  value={taskForm.priority}
-                  onChange={(e) => setTaskForm({ ...taskForm, priority: e.target.value as any })}
-                >
-                  <option value="low">Rendah</option>
-                  <option value="medium">Sedang</option>
-                  <option value="high">Tinggi</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Tenggat Waktu (Due Date)</label>
-                <input
-                  type="date"
-                  className="input"
-                  value={taskForm.due_date}
-                  onChange={(e) => setTaskForm({ ...taskForm, due_date: e.target.value })}
-                />
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={() => setShowTaskModal(false)}>Batal</button>
-              <button type="submit" className="btn btn-primary">Simpan</button>
-            </div>
-          </form>
-        </div>
-      )}
+            </motion.form>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* TASK DETAIL & COMMENT DRAWER/MODAL */}
-      {selectedTask && (
-        <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '650px' }}>
+      <AnimatePresence>
+        {selectedTask && (
+          <motion.div
+            className="modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+          >
+            <motion.div
+              className="modal-content"
+              style={{ maxWidth: '650px' }}
+              initial={{ scale: 0.95, y: 10 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 10 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+            >
             <div className="modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 {getPriorityBadge(selectedTask.priority)}
@@ -375,9 +404,10 @@ export const OperationsView: React.FC = () => {
             <div className="modal-footer">
               <button type="button" className="btn btn-secondary" onClick={() => setSelectedTask(null)}>Tutup</button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+    </AnimatePresence>
     </div>
   );
 };
