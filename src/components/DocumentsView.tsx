@@ -16,7 +16,9 @@ import {
   Building,
   User,
   Trash2,
-  ArrowRight
+  ArrowRight,
+  LayoutGrid,
+  List
 } from 'lucide-react';
 
 export const DocumentsView: React.FC = () => {
@@ -35,6 +37,7 @@ export const DocumentsView: React.FC = () => {
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<'list' | 'create' | 'customize'>('list');
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [selectedDocType, setSelectedDocType] = useState<'invoice' | 'receipt' | 'letter'>('invoice');
   const [viewingDoc, setViewingDoc] = useState<Document | null>(null);
   
@@ -317,82 +320,166 @@ export const DocumentsView: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <div className="card-header">
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
             <span className="card-title">Daftar Dokumen Masuk</span>
+            <div style={{ display: 'flex', gap: 2, backgroundColor: 'var(--bg)', padding: 4, borderRadius: 'var(--radius-sm)' }}>
+              <button
+                className={`btn ${viewMode === 'cards' ? 'btn-primary' : 'btn-ghost'}`}
+                style={{ padding: '4px 8px', minHeight: 'unset', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}
+                onClick={() => setViewMode('cards')}
+                type="button"
+              >
+                <LayoutGrid size={14} /> Kartu
+              </button>
+              <button
+                className={`btn ${viewMode === 'table' ? 'btn-primary' : 'btn-ghost'}`}
+                style={{ padding: '4px 8px', minHeight: 'unset', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}
+                onClick={() => setViewMode('table')}
+                type="button"
+              >
+                <List size={14} /> Tabel
+              </button>
+            </div>
           </div>
 
-          <div className="table-container">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Nomor Dokumen</th>
-                  <th>Judul Dokumen</th>
-                  <th>Pembuat</th>
-                  <th>Tanggal Dibuat</th>
-                  <th>Status Approval</th>
-                  <th>Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {documents.map((doc) => {
-                  const isApprover = isUserApproverForDoc(doc);
-                  return (
-                    <tr key={doc.id}>
-                      <td style={{ fontWeight: 600 }}>{doc.doc_number}</td>
-                      <td>{doc.title}</td>
-                      <td>{doc.created_by_name}</td>
-                      <td>{new Date(doc.created_at).toLocaleDateString('id-ID')}</td>
-                      <td>
-                        <span className={`badge ${
-                          doc.status === 'APPROVED' ? 'badge-success' :
-                          doc.status === 'REVOKED' ? 'badge-danger' :
-                          doc.status === 'PENDING' ? 'badge-warning' : 'badge-neutral'
-                        }`}>
-                          {doc.status === 'PENDING' ? `PENDING LVL ${doc.current_approval_level}` : doc.status}
-                        </span>
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', gap: 6 }}>
-                          <button
-                            className="btn btn-secondary"
-                            style={{ minHeight: 28, padding: '4px 10px', fontSize: 12 }}
-                            onClick={() => setViewingDoc(doc)}
-                          >
-                            Buka Detail
-                          </button>
-                          {doc.status === 'DRAFT' && doc.created_by === currentUser.id && (
+          {viewMode === 'table' ? (
+            <div className="table-container">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Nomor Dokumen</th>
+                    <th>Judul Dokumen</th>
+                    <th>Pembuat</th>
+                    <th>Tanggal Dibuat</th>
+                    <th>Status Approval</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {documents.map((doc) => {
+                    const isApprover = isUserApproverForDoc(doc);
+                    return (
+                      <tr key={doc.id}>
+                        <td style={{ fontWeight: 600 }}>{doc.doc_number}</td>
+                        <td>{doc.title}</td>
+                        <td>{doc.created_by_name}</td>
+                        <td>{new Date(doc.created_at).toLocaleDateString('id-ID')}</td>
+                        <td>
+                          <span className={`badge ${
+                            doc.status === 'APPROVED' ? 'badge-success' :
+                            doc.status === 'REVOKED' ? 'badge-danger' :
+                            doc.status === 'PENDING' ? 'badge-warning' : 'badge-neutral'
+                          }`}>
+                            {doc.status === 'PENDING' ? `PENDING LVL ${doc.current_approval_level}` : doc.status}
+                          </span>
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', gap: 6 }}>
                             <button
-                              className="btn btn-primary"
+                              className="btn btn-secondary"
                               style={{ minHeight: 28, padding: '4px 10px', fontSize: 12 }}
-                              onClick={() => submitDocForApproval(doc.id)}
-                            >
-                              Ajukan Approval
-                            </button>
-                          )}
-                          {isApprover && (
-                            <button
-                              className="btn btn-primary"
-                              style={{ minHeight: 28, padding: '4px 10px', fontSize: 12, backgroundColor: 'var(--success)', borderColor: 'transparent' }}
                               onClick={() => setViewingDoc(doc)}
                             >
-                              Review
+                              Buka Detail
                             </button>
-                          )}
-                        </div>
+                            {doc.status === 'DRAFT' && doc.created_by === currentUser.id && (
+                              <button
+                                className="btn btn-primary"
+                                style={{ minHeight: 28, padding: '4px 10px', fontSize: 12 }}
+                                onClick={() => submitDocForApproval(doc.id)}
+                              >
+                                Ajukan Approval
+                              </button>
+                            )}
+                            {isApprover && (
+                              <button
+                                className="btn btn-primary"
+                                style={{ minHeight: 28, padding: '4px 10px', fontSize: 12, backgroundColor: 'var(--success)', borderColor: 'transparent' }}
+                                onClick={() => setViewingDoc(doc)}
+                              >
+                                Review
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {documents.length === 0 && (
+                    <tr>
+                      <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
+                        Belum ada dokumen yang dibuat.
                       </td>
                     </tr>
-                  );
-                })}
-                {documents.length === 0 && (
-                  <tr>
-                    <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-                      Belum ada dokumen yang dibuat.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px', padding: '20px' }}>
+              {documents.map((doc) => {
+                const isApprover = isUserApproverForDoc(doc);
+                return (
+                  <div key={doc.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16, border: '1px solid var(--border)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+                      <div style={{ minWidth: 0 }}>
+                        <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>{doc.doc_number}</span>
+                        <h4 style={{ fontSize: 14, fontWeight: 700, margin: '4px 0 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={doc.title}>{doc.title}</h4>
+                      </div>
+                      <span className={`badge ${
+                        doc.status === 'APPROVED' ? 'badge-success' :
+                        doc.status === 'REVOKED' ? 'badge-danger' :
+                        doc.status === 'PENDING' ? 'badge-warning' : 'badge-neutral'
+                      }`} style={{ flexShrink: 0 }}>
+                        {doc.status === 'PENDING' ? `PENDING LVL ${doc.current_approval_level}` : doc.status}
+                      </span>
+                    </div>
+
+                    <div style={{ fontSize: 13, color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: 4, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+                      <div><strong>Pembuat:</strong> {doc.created_by_name}</div>
+                      <div><strong>Tanggal:</strong> {new Date(doc.created_at).toLocaleDateString('id-ID')}</div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 6, marginTop: 'auto', paddingTop: 8 }}>
+                      <button
+                        className="btn btn-secondary"
+                        style={{ flex: 1, minHeight: 28, padding: '4px 10px', fontSize: 12 }}
+                        onClick={() => setViewingDoc(doc)}
+                        type="button"
+                      >
+                        Buka Detail
+                      </button>
+                      {doc.status === 'DRAFT' && doc.created_by === currentUser.id && (
+                        <button
+                          className="btn btn-primary"
+                          style={{ flex: 1, minHeight: 28, padding: '4px 10px', fontSize: 12 }}
+                          onClick={() => submitDocForApproval(doc.id)}
+                          type="button"
+                        >
+                          Ajukan
+                        </button>
+                      )}
+                      {isApprover && (
+                        <button
+                          className="btn btn-primary"
+                          style={{ flex: 1, minHeight: 28, padding: '4px 10px', fontSize: 12, backgroundColor: 'var(--success)', borderColor: 'transparent' }}
+                          onClick={() => setViewingDoc(doc)}
+                          type="button"
+                        >
+                          Review
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+              {documents.length === 0 && (
+                <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: 'var(--text-muted)', padding: '24px 0', fontSize: 14 }}>
+                  Belum ada dokumen yang dibuat.
+                </div>
+              )}
+            </div>
+          )}
         </motion.div>
       )}
 
@@ -782,7 +869,7 @@ export const DocumentsView: React.FC = () => {
                           <span style={{ fontSize: '7.5px', color: '#4b5563', margin: 0 }}>Hormat Kami,</span>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
                             <span style={{ fontSize: `${fontSize}px`, fontWeight: 'bold', textDecoration: 'underline' }}>{resolvedContent.split('\n')[0]}</span>
-                            {resolvedContent.split('\n').slice(1).map((line, idx) => (
+                            {resolvedContent.split('\n').slice(1).map((line: string, idx: number) => (
                               <span key={idx} style={{ fontSize: '7.5px', color: '#6b7280' }}>{line}</span>
                             ))}
                           </div>

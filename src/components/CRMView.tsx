@@ -14,9 +14,12 @@ import {
   Tag,
   Pencil,
   Mail,
-  Phone
+  Phone,
+  LayoutGrid,
+  List
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ConfirmModal, useConfirmModal } from './ConfirmModal';
 
 interface KanbanColumnProps {
   stage: {
@@ -87,10 +90,10 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
     >
       <div className="kanban-column-title" style={{ borderBottomColor: stage.color }}>
         <span>{stage.name}</span>
-        <span className="badge badge-neutral" style={{ fontSize: 10 }}>{stageDeals.length}</span>
+        <span className="badge badge-neutral">{stageDeals.length}</span>
       </div>
       
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, overflowY: 'auto', maxHeight: '550px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflowY: 'auto', maxHeight: '550px' }}>
         {stageDeals.map((deal) => {
           const contact = contacts.find(c => c.id === deal.contact_id);
           return (
@@ -109,42 +112,42 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
                 dragCounter.current = 0;
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6, width: '100%' }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }} title={deal.title}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, width: '100%' }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }} title={deal.title}>
                   {deal.title}
                 </span>
-                <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
+                <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                   <button
                     className="btn btn-ghost"
-                    style={{ padding: 2, minHeight: 'unset', width: 22, height: 22 }}
+                    style={{ padding: 4, minHeight: 'unset', width: 28, height: 28 }}
                     onClick={(e) => {
                       e.stopPropagation();
                       onEditDeal(deal);
                     }}
                   >
-                    <Pencil size={10} />
+                    <Pencil size={12} />
                   </button>
                   <button
                     className="btn btn-ghost text-danger"
-                    style={{ padding: 2, minHeight: 'unset', width: 22, height: 22, color: 'var(--danger)' }}
+                    style={{ padding: 4, minHeight: 'unset', width: 28, height: 28, color: 'var(--danger)' }}
                     onClick={(e) => {
                       e.stopPropagation();
                       onDeleteDeal(deal.id);
                     }}
                   >
-                    <Trash2 size={10} />
+                    <Trash2 size={12} />
                   </button>
                 </div>
               </div>
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--primary)' }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--primary)' }}>
                 {formatRupiah(deal.value)}
               </span>
               {contact && (
-                <div style={{ fontSize: 11, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <Building size={12} /> {contact.name}
+                <div style={{ fontSize: 13, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Building size={14} /> {contact.name}
                 </div>
               )}
-              <p style={{ fontSize: 11, color: 'var(--text-muted)', borderTop: '1px solid var(--border)', paddingTop: 6, margin: 0 }}>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', borderTop: '1px solid var(--border)', paddingTop: 6, margin: 0 }}>
                 Est: {deal.expected_close}
               </p>
               
@@ -152,19 +155,19 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6, marginTop: 4 }}>
                 <button
                   className="btn btn-secondary"
-                  style={{ flex: 1, minHeight: 24, padding: '2px 4px', fontSize: 11 }}
+                  style={{ flex: 1, minHeight: 28, padding: '4px 8px', fontSize: 13 }}
                   onClick={() => moveDealStage(deal.id, 'backward')}
                   disabled={dealStages.findIndex(s => s.id === stage.id) === 0}
                 >
-                  <ChevronLeft size={12} /> Prev
+                  <ChevronLeft size={14} /> Prev
                 </button>
                 <button
                   className="btn btn-secondary"
-                  style={{ flex: 1, minHeight: 24, padding: '2px 4px', fontSize: 11 }}
+                  style={{ flex: 1, minHeight: 28, padding: '4px 8px', fontSize: 13 }}
                   onClick={() => moveDealStage(deal.id, 'forward')}
                   disabled={dealStages.findIndex(s => s.id === stage.id) === dealStages.length - 1}
                 >
-                  Next <ChevronRight size={12} />
+                  Next <ChevronRight size={14} />
                 </button>
               </div>
             </div>
@@ -172,7 +175,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
         })}
         
         {stageDeals.length === 0 && (
-          <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px 0', fontSize: 12, border: '1px dashed var(--border)', borderRadius: 'var(--radius-sm)' }}>
+          <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px 0', fontSize: 14, border: '1px dashed var(--border)', borderRadius: 'var(--radius-sm)' }}>
             Kosong
           </div>
         )}
@@ -202,6 +205,9 @@ export const CRMView: React.FC = () => {
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<'pipeline' | 'contacts' | 'companies'>('pipeline');
+  const [contactsView, setContactsView] = useState<'cards' | 'table'>('cards');
+  const [companiesView, setCompaniesView] = useState<'cards' | 'table'>('cards');
+  const [pipelineView, setPipelineView] = useState<'board' | 'table'>('board');
   const [searchQuery, setSearchQuery] = useState('');
   const [draggingDealId, setDraggingDealId] = useState<string | null>(null);
   
@@ -209,6 +215,9 @@ export const CRMView: React.FC = () => {
   const [showContactModal, setShowContactModal] = useState(false);
   const [showCompanyModal, setShowCompanyModal] = useState(false);
   const [showDealModal, setShowDealModal] = useState(false);
+
+  // Confirm modal
+  const { openConfirm, modalProps: confirmModalProps } = useConfirmModal();
 
   // Editing states
   const [editingContactId, setEditingContactId] = useState<string | null>(null);
@@ -389,20 +398,83 @@ export const CRMView: React.FC = () => {
             </button>
           </div>
 
-          {/* Search query input */}
-          {activeTab !== 'pipeline' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', maxWidth: '300px', position: 'relative' }}>
-              <Search size={16} style={{ position: 'absolute', left: 12, color: 'var(--text-muted)' }} />
-              <input
-                type="text"
-                placeholder={`Cari ${activeTab === 'contacts' ? 'kontak' : 'perusahaan'}...`}
-                className="input"
-                style={{ paddingLeft: '36px' }}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+          {/* Search and view switcher controls */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            {activeTab !== 'pipeline' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', minWidth: '200px', maxWidth: '300px', position: 'relative' }}>
+                <Search size={16} style={{ position: 'absolute', left: 12, color: 'var(--text-muted)' }} />
+                <input
+                  type="text"
+                  placeholder={`Cari ${activeTab === 'contacts' ? 'kontak' : 'perusahaan'}...`}
+                  className="input"
+                  style={{ paddingLeft: '36px' }}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: 2, backgroundColor: 'var(--bg)', padding: 4, borderRadius: 'var(--radius-sm)' }}>
+              {activeTab === 'pipeline' ? (
+                <>
+                  <button
+                    className={`btn ${pipelineView === 'board' ? 'btn-primary' : 'btn-ghost'}`}
+                    style={{ padding: '4px 8px', minHeight: 'unset', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}
+                    onClick={() => setPipelineView('board')}
+                    type="button"
+                  >
+                    <LayoutGrid size={14} /> Board
+                  </button>
+                  <button
+                    className={`btn ${pipelineView === 'table' ? 'btn-primary' : 'btn-ghost'}`}
+                    style={{ padding: '4px 8px', minHeight: 'unset', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}
+                    onClick={() => setPipelineView('table')}
+                    type="button"
+                  >
+                    <List size={14} /> Tabel
+                  </button>
+                </>
+              ) : activeTab === 'contacts' ? (
+                <>
+                  <button
+                    className={`btn ${contactsView === 'cards' ? 'btn-primary' : 'btn-ghost'}`}
+                    style={{ padding: '4px 8px', minHeight: 'unset', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}
+                    onClick={() => setContactsView('cards')}
+                    type="button"
+                  >
+                    <LayoutGrid size={14} /> Kartu
+                  </button>
+                  <button
+                    className={`btn ${contactsView === 'table' ? 'btn-primary' : 'btn-ghost'}`}
+                    style={{ padding: '4px 8px', minHeight: 'unset', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}
+                    onClick={() => setContactsView('table')}
+                    type="button"
+                  >
+                    <List size={14} /> Tabel
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    className={`btn ${companiesView === 'cards' ? 'btn-primary' : 'btn-ghost'}`}
+                    style={{ padding: '4px 8px', minHeight: 'unset', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}
+                    onClick={() => setCompaniesView('cards')}
+                    type="button"
+                  >
+                    <LayoutGrid size={14} /> Kartu
+                  </button>
+                  <button
+                    className={`btn ${companiesView === 'table' ? 'btn-primary' : 'btn-ghost'}`}
+                    style={{ padding: '4px 8px', minHeight: 'unset', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}
+                    onClick={() => setCompaniesView('table')}
+                    type="button"
+                  >
+                    <List size={14} /> Tabel
+                  </button>
+                </>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
 
@@ -417,270 +489,537 @@ export const CRMView: React.FC = () => {
         >
           {/* Tab Contents: PIPELINE DEALS (Kanban) */}
           {activeTab === 'pipeline' && (
-            <div className={`kanban-board ${draggingDealId ? 'dragging-active' : ''}`}>
-              {dealStages.map((stage) => {
-                const stageDeals = deals.filter(d => d.stage_id === stage.id);
-                return (
-                  <KanbanColumn
-                    key={stage.id}
-                    stage={stage}
-                    stageDeals={stageDeals}
-                    contacts={contacts}
-                    draggingDealId={draggingDealId}
-                    setDraggingDealId={setDraggingDealId}
-                    updateDealStage={updateDealStage}
-                    moveDealStage={moveDealStage}
-                    dealStages={dealStages}
-                    onEditDeal={(deal) => {
-                      setEditingDealId(deal.id);
-                      setDealForm({
-                        title: deal.title,
-                        value: String(deal.value),
-                        stage_id: deal.stage_id,
-                        contact_id: deal.contact_id || '',
-                        notes: deal.notes || '',
-                        expected_close: deal.expected_close || ''
-                      });
-                      setShowDealModal(true);
-                    }}
-                    onDeleteDeal={(id) => {
-                      if (confirm('Apakah Anda yakin ingin menghapus deal ini?')) {
-                        deleteDeal(id);
-                      }
-                    }}
-                  />
-                );
-              })}
-            </div>
+            pipelineView === 'board' ? (
+              <div className={`kanban-board ${draggingDealId ? 'dragging-active' : ''}`}>
+                {dealStages.map((stage) => {
+                  const stageDeals = deals.filter(d => d.stage_id === stage.id);
+                  return (
+                    <KanbanColumn
+                      key={stage.id}
+                      stage={stage}
+                      stageDeals={stageDeals}
+                      contacts={contacts}
+                      draggingDealId={draggingDealId}
+                      setDraggingDealId={setDraggingDealId}
+                      updateDealStage={updateDealStage}
+                      moveDealStage={moveDealStage}
+                      dealStages={dealStages}
+                      onEditDeal={(deal) => {
+                        setEditingDealId(deal.id);
+                        setDealForm({
+                          title: deal.title,
+                          value: String(deal.value),
+                          stage_id: deal.stage_id,
+                          contact_id: deal.contact_id || '',
+                          notes: deal.notes || '',
+                          expected_close: deal.expected_close || ''
+                        });
+                        setShowDealModal(true);
+                      }}
+                      onDeleteDeal={(id) => {
+                        openConfirm({
+                          title: 'Hapus Deal',
+                          message: 'Apakah Anda yakin ingin menghapus deal ini? Tindakan ini tidak dapat dibatalkan.',
+                          confirmLabel: 'Ya, Hapus',
+                          variant: 'danger',
+                          onConfirm: () => deleteDeal(id),
+                        });
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="table-container">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Judul Deal</th>
+                      <th>Nilai Nominal</th>
+                      <th>Kontak Utama</th>
+                      <th>Stage</th>
+                      <th>Expected Close Date</th>
+                      <th style={{ width: 80, textAlign: 'center' }}>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {deals.map(deal => {
+                      const contact = contacts.find(c => c.id === deal.contact_id);
+                      const stage = dealStages.find(s => s.id === deal.stage_id);
+                      return (
+                        <tr key={deal.id}>
+                          <td style={{ fontWeight: 600 }}>{deal.title}</td>
+                          <td style={{ fontWeight: 600, color: 'var(--primary)' }}>{formatRupiah(deal.value)}</td>
+                          <td>{contact ? contact.name : '-'}</td>
+                          <td>
+                            <span className="badge" style={{ backgroundColor: stage?.color ? `${stage.color}20` : 'var(--border)', color: stage?.color || 'var(--text-main)' }}>
+                              {stage ? stage.name : '-'}
+                            </span>
+                          </td>
+                          <td>{deal.expected_close || '-'}</td>
+                          <td>
+                            <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
+                              <button
+                                className="btn btn-ghost"
+                                style={{ padding: 4, minHeight: 'unset', width: 28, height: 28 }}
+                                onClick={() => {
+                                  setEditingDealId(deal.id);
+                                  setDealForm({
+                                    title: deal.title,
+                                    value: String(deal.value),
+                                    stage_id: deal.stage_id,
+                                    contact_id: deal.contact_id || '',
+                                    notes: deal.notes || '',
+                                    expected_close: deal.expected_close || ''
+                                  });
+                                  setShowDealModal(true);
+                                }}
+                                type="button"
+                              >
+                                <Pencil size={12} />
+                              </button>
+                              <button
+                                className="btn btn-ghost text-danger"
+                                style={{ padding: 4, minHeight: 'unset', width: 28, height: 28, color: 'var(--danger)' }}
+                                onClick={() => {
+                                  openConfirm({
+                                    title: 'Hapus Deal',
+                                    message: 'Apakah Anda yakin ingin menghapus deal ini? Tindakan ini tidak dapat dibatalkan.',
+                                    confirmLabel: 'Ya, Hapus',
+                                    variant: 'danger',
+                                    onConfirm: () => deleteDeal(deal.id),
+                                  });
+                                }}
+                                type="button"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {deals.length === 0 && (
+                      <tr>
+                        <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Tidak ada deal di pipeline.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )
           )}
 
           {/* Tab Contents: CONTACTS */}
           {activeTab === 'contacts' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '12px', marginTop: '12px' }}>
-              {filteredContacts.map(c => {
-                const comp = companies.find(co => co.id === c.company_id);
-                const project = housingProjects.find(p => p.id === c.housing_interest);
-                const initials = c.name ? c.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '?';
-                return (
-                  <div key={c.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 10, position: 'relative' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: '50%',
-                        backgroundColor: 'var(--primary-light)',
-                        color: 'var(--primary)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 700,
-                        fontSize: 10
-                      }}>
-                        {initials}
+            contactsView === 'cards' ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px', marginTop: '16px' }}>
+                {filteredContacts.map(c => {
+                  const comp = companies.find(co => co.id === c.company_id);
+                  const project = housingProjects.find(p => p.id === c.housing_interest);
+                  const initials = c.name ? c.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '?';
+                  return (
+                    <div key={c.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16, position: 'relative' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: '50%',
+                          backgroundColor: 'var(--primary-light)',
+                          color: 'var(--primary)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 700,
+                          fontSize: 14
+                        }}>
+                          {initials}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <h4 style={{ fontSize: 14, fontWeight: 700, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={c.name}>
+                            {c.name}
+                          </h4>
+                          {comp && (
+                            <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                              <Building size={12} /> {comp.name}
+                            </span>
+                          )}
+                        </div>
+                        
+                        {/* Actions */}
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          <button
+                            className="btn btn-ghost"
+                            style={{ padding: 4, minHeight: 'unset', width: 28, height: 28 }}
+                            onClick={() => {
+                              setEditingContactId(c.id);
+                              setContactForm({
+                                name: c.name,
+                                email: c.email || '',
+                                phone: c.phone || '',
+                                company_id: c.company_id || '',
+                                tags: c.tags.join(', '),
+                                notes: c.notes || '',
+                                housing_interest: c.housing_interest || '',
+                                lead_source: c.lead_source || ''
+                              });
+                              setShowContactModal(true);
+                            }}
+                            type="button"
+                          >
+                            <Pencil size={12} />
+                          </button>
+                          <button
+                            className="btn btn-ghost text-danger"
+                            style={{ padding: 4, minHeight: 'unset', width: 28, height: 28, color: 'var(--danger)' }}
+                            onClick={() => {
+                              openConfirm({
+                                title: 'Hapus Kontak',
+                                message: `Apakah Anda yakin ingin menghapus kontak "${c.name}"? Tindakan ini tidak dapat dibatalkan.`,
+                                confirmLabel: 'Ya, Hapus',
+                                variant: 'danger',
+                                onConfirm: () => deleteContact(c.id),
+                              });
+                            }}
+                            type="button"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
                       </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <h4 style={{ fontSize: 10, fontWeight: 700, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={c.name}>
-                          {c.name}
-                        </h4>
-                        {comp && (
-                          <span style={{ fontSize: 9, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 3, marginTop: 1 }}>
-                            <Building size={9} /> {comp.name}
-                          </span>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderTop: '1px solid var(--border)', paddingTop: 12, fontSize: 13 }}>
+                        {c.email && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)' }}>
+                            <Mail size={13} /> <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.email}</span>
+                          </div>
                         )}
+                        {c.phone && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)' }}>
+                            <Phone size={13} /> <span>{c.phone}</span>
+                          </div>
+                        )}
+                        
+                        {/* Housing Developer Custom Badges */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4, borderTop: '1px dashed var(--border)', paddingTop: 8 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ color: 'var(--text-muted)' }}>Minat:</span>
+                            <span style={{ fontWeight: 600, color: 'var(--primary)' }}>
+                              {project ? project.name : '-'}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ color: 'var(--text-muted)' }}>Sumber Lead:</span>
+                            {c.lead_source ? <span className="badge badge-neutral">{c.lead_source}</span> : <span>-</span>}
+                          </div>
+                        </div>
                       </div>
-                      
-                      {/* Actions */}
-                      <div style={{ display: 'flex', gap: 2 }}>
-                        <button
-                          className="btn btn-ghost"
-                          style={{ padding: 2, minHeight: 'unset', width: 22, height: 22 }}
-                          onClick={() => {
-                            setEditingContactId(c.id);
-                            setContactForm({
-                              name: c.name,
-                              email: c.email || '',
-                              phone: c.phone || '',
-                              company_id: c.company_id || '',
-                              tags: c.tags.join(', '),
-                              notes: c.notes || '',
-                              housing_interest: c.housing_interest || '',
-                              lead_source: c.lead_source || ''
-                            });
-                            setShowContactModal(true);
-                          }}
-                        >
-                          <Pencil size={9} />
-                        </button>
-                        <button
-                          className="btn btn-ghost text-danger"
-                          style={{ padding: 2, minHeight: 'unset', width: 22, height: 22, color: 'var(--danger)' }}
-                          onClick={() => {
-                            if (confirm(`Apakah Anda yakin ingin menghapus kontak "${c.name}"?`)) {
-                              deleteContact(c.id);
-                            }
-                          }}
-                        >
-                          <Trash2 size={9} />
-                        </button>
-                      </div>
-                    </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, borderTop: '1px solid var(--border)', paddingTop: 8, fontSize: 9 }}>
-                      {c.email && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--text-muted)' }}>
-                          <Mail size={10} /> <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.email}</span>
+                      {c.tags.length > 0 && (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
+                          {c.tags.map(t => (
+                            <span key={t} className="badge badge-primary">{t}</span>
+                          ))}
                         </div>
                       )}
-                      {c.phone && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--text-muted)' }}>
-                          <Phone size={10} /> <span>{c.phone}</span>
+
+                      {c.notes && (
+                        <div style={{
+                          fontSize: 12,
+                          color: 'var(--text-muted)',
+                          backgroundColor: 'var(--bg)',
+                          padding: 10,
+                          borderRadius: 'var(--radius-sm)',
+                          fontStyle: 'italic',
+                          marginTop: 'auto',
+                          borderLeft: '3px solid var(--primary)'
+                        }}>
+                          {c.notes}
                         </div>
                       )}
-                      
-                      {/* Housing Developer Custom Badges */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 2, borderTop: '1px dashed var(--border)', paddingTop: 4 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ color: 'var(--text-muted)' }}>Minat:</span>
-                          <span style={{ fontWeight: 600, color: 'var(--primary)' }}>
-                            {project ? project.name : '-'}
-                          </span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ color: 'var(--text-muted)' }}>Sumber Lead:</span>
-                          {c.lead_source ? <span className="badge badge-neutral" style={{ fontSize: 8, padding: '2px 4px' }}>{c.lead_source}</span> : <span>-</span>}
-                        </div>
-                      </div>
                     </div>
-
-                    {c.tags.length > 0 && (
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2, marginTop: 2 }}>
-                        {c.tags.map(t => (
-                          <span key={t} className="badge badge-primary" style={{ fontSize: 8, padding: '1px 3px' }}>{t}</span>
-                        ))}
-                      </div>
-                    )}
-
-                    {c.notes && (
-                      <div style={{
-                        fontSize: 8,
-                        color: 'var(--text-muted)',
-                        backgroundColor: 'var(--bg)',
-                        padding: 6,
-                        borderRadius: 'var(--radius-sm)',
-                        fontStyle: 'italic',
-                        marginTop: 'auto',
-                        borderLeft: '2px solid var(--primary)'
-                      }}>
-                        {c.notes}
-                      </div>
-                    )}
+                  );
+                })}
+                {filteredContacts.length === 0 && (
+                  <div className="card" style={{ gridColumn: '1 / -1', padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
+                    Kontak tidak ditemukan.
                   </div>
-                );
-              })}
-              {filteredContacts.length === 0 && (
-                <div className="card" style={{ gridColumn: '1 / -1', padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 10 }}>
-                  Kontak tidak ditemukan.
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            ) : (
+              <div className="table-container">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Nama Lengkap</th>
+                      <th>Email</th>
+                      <th>Telepon</th>
+                      <th>Perusahaan</th>
+                      <th>Minat Perumahan</th>
+                      <th>Sumber Lead</th>
+                      <th>Tags</th>
+                      <th>Catatan</th>
+                      <th style={{ width: 80, textAlign: 'center' }}>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredContacts.map(c => {
+                      const comp = companies.find(co => co.id === c.company_id);
+                      const project = housingProjects.find(p => p.id === c.housing_interest);
+                      return (
+                        <tr key={c.id}>
+                          <td style={{ fontWeight: 600 }}>{c.name}</td>
+                          <td>{c.email || '-'}</td>
+                          <td>{c.phone || '-'}</td>
+                          <td>{comp ? comp.name : '-'}</td>
+                          <td>
+                            {project ? <span className="badge badge-primary">{project.name}</span> : '-'}
+                          </td>
+                          <td>
+                            {c.lead_source ? <span className="badge badge-neutral">{c.lead_source}</span> : '-'}
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                              {c.tags.map(t => (
+                                <span key={t} className="badge badge-primary">{t}</span>
+                              ))}
+                            </div>
+                          </td>
+                          <td style={{ fontStyle: 'italic', fontSize: 12, color: 'var(--text-muted)' }}>{c.notes || '-'}</td>
+                          <td>
+                            <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
+                              <button
+                                className="btn btn-ghost"
+                                style={{ padding: 4, minHeight: 'unset', width: 28, height: 28 }}
+                                onClick={() => {
+                                  setEditingContactId(c.id);
+                                  setContactForm({
+                                    name: c.name,
+                                    email: c.email || '',
+                                    phone: c.phone || '',
+                                    company_id: c.company_id || '',
+                                    tags: c.tags.join(', '),
+                                    notes: c.notes || '',
+                                    housing_interest: c.housing_interest || '',
+                                    lead_source: c.lead_source || ''
+                                  });
+                                  setShowContactModal(true);
+                                }}
+                                type="button"
+                              >
+                                <Pencil size={12} />
+                              </button>
+                              <button
+                                className="btn btn-ghost text-danger"
+                                style={{ padding: 4, minHeight: 'unset', width: 28, height: 28, color: 'var(--danger)' }}
+                                onClick={() => {
+                                  openConfirm({
+                                    title: 'Hapus Kontak',
+                                    message: `Apakah Anda yakin ingin menghapus kontak "${c.name}"? Tindakan ini tidak dapat dibatalkan.`,
+                                    confirmLabel: 'Ya, Hapus',
+                                    variant: 'danger',
+                                    onConfirm: () => deleteContact(c.id),
+                                  });
+                                }}
+                                type="button"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {filteredContacts.length === 0 && (
+                      <tr>
+                        <td colSpan={9} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Kontak tidak ditemukan.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )
           )}
 
           {/* Tab Contents: COMPANIES */}
           {activeTab === 'companies' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '12px', marginTop: '12px' }}>
-              {filteredCompanies.map(co => {
-                return (
-                  <div key={co.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 10, position: 'relative' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: 'var(--radius-sm)',
-                        backgroundColor: 'var(--success-light)',
-                        color: 'var(--success)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 700,
-                        fontSize: 10
-                      }}>
-                        <Building size={12} />
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <h4 style={{ fontSize: 10, fontWeight: 700, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={co.name}>
-                          {co.name}
-                        </h4>
-                        <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>
-                          {co.industry || 'Industri Lainnya'}
-                        </span>
+            companiesView === 'cards' ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px', marginTop: '16px' }}>
+                {filteredCompanies.map(co => {
+                  return (
+                    <div key={co.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16, position: 'relative' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 'var(--radius-sm)',
+                          backgroundColor: 'var(--success-light)',
+                          color: 'var(--success)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 700,
+                          fontSize: 14
+                        }}>
+                          <Building size={16} />
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <h4 style={{ fontSize: 14, fontWeight: 700, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={co.name}>
+                            {co.name}
+                          </h4>
+                          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                            {co.industry || 'Industri Lainnya'}
+                          </span>
+                        </div>
+
+                        {/* Actions */}
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          <button
+                            className="btn btn-ghost"
+                            style={{ padding: 4, minHeight: 'unset', width: 28, height: 28 }}
+                            onClick={() => {
+                              setEditingCompanyId(co.id);
+                              setCompanyForm({
+                                name: co.name,
+                                industry: co.industry || '',
+                                size: co.size || '1-10',
+                                website: co.website || '',
+                                address: co.address || ''
+                              });
+                              setShowCompanyModal(true);
+                            }}
+                            type="button"
+                          >
+                            <Pencil size={12} />
+                          </button>
+                          <button
+                            className="btn btn-ghost text-danger"
+                            style={{ padding: 4, minHeight: 'unset', width: 28, height: 28, color: 'var(--danger)' }}
+                            onClick={() => {
+                              openConfirm({
+                                title: 'Hapus Perusahaan',
+                                message: `Apakah Anda yakin ingin menghapus perusahaan "${co.name}"? Tindakan ini tidak dapat dibatalkan.`,
+                                confirmLabel: 'Ya, Hapus',
+                                variant: 'danger',
+                                onConfirm: () => deleteCompany(co.id),
+                              });
+                            }}
+                            type="button"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
                       </div>
 
-                      {/* Actions */}
-                      <div style={{ display: 'flex', gap: 2 }}>
-                        <button
-                          className="btn btn-ghost"
-                          style={{ padding: 2, minHeight: 'unset', width: 22, height: 22 }}
-                          onClick={() => {
-                            setEditingCompanyId(co.id);
-                            setCompanyForm({
-                              name: co.name,
-                              industry: co.industry || '',
-                              size: co.size || '1-10',
-                              website: co.website || '',
-                              address: co.address || ''
-                            });
-                            setShowCompanyModal(true);
-                          }}
-                        >
-                          <Pencil size={9} />
-                        </button>
-                        <button
-                          className="btn btn-ghost text-danger"
-                          style={{ padding: 2, minHeight: 'unset', width: 22, height: 22, color: 'var(--danger)' }}
-                          onClick={() => {
-                            if (confirm(`Apakah Anda yakin ingin menghapus perusahaan "${co.name}"?`)) {
-                              deleteCompany(co.id);
-                            }
-                          }}
-                        >
-                          <Trash2 size={9} />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, borderTop: '1px solid var(--border)', paddingTop: 8, fontSize: 9 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: 'var(--text-muted)' }}>Karyawan:</span>
-                        <span className="badge badge-neutral" style={{ fontSize: 8, padding: '2px 4px' }}>{co.size} Karyawan</span>
-                      </div>
-
-                      {co.website && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderTop: '1px solid var(--border)', paddingTop: 12, fontSize: 13 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ color: 'var(--text-muted)' }}>Website:</span>
-                          <a href={`https://${co.website}`} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>
-                            {co.website}
-                          </a>
+                          <span style={{ color: 'var(--text-muted)' }}>Karyawan:</span>
+                          <span className="badge badge-neutral">{co.size} Karyawan</span>
                         </div>
-                      )}
 
-                      {co.address && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 2, borderTop: '1px dashed var(--border)', paddingTop: 4 }}>
-                          <span style={{ color: 'var(--text-muted)' }}>Alamat Kantor:</span>
-                          <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: '1.3', fontSize: 8 }}>
-                            {co.address}
-                          </p>
-                        </div>
-                      )}
+                        {co.website && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ color: 'var(--text-muted)' }}>Website:</span>
+                            <a href={`https://${co.website}`} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>
+                              {co.website}
+                            </a>
+                          </div>
+                        )}
+
+                        {co.address && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4, borderTop: '1px dashed var(--border)', paddingTop: 8 }}>
+                            <span style={{ color: 'var(--text-muted)' }}>Alamat Kantor:</span>
+                            <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: '1.3', fontSize: 12 }}>
+                              {co.address}
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
+                  );
+                })}
+                {filteredCompanies.length === 0 && (
+                  <div className="card" style={{ gridColumn: '1 / -1', padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
+                    Perusahaan tidak ditemukan.
                   </div>
-                );
-              })}
-              {filteredCompanies.length === 0 && (
-                <div className="card" style={{ gridColumn: '1 / -1', padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 10 }}>
-                  Perusahaan tidak ditemukan.
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            ) : (
+              <div className="table-container">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Nama Perusahaan</th>
+                      <th>Industri</th>
+                      <th>Ukuran</th>
+                      <th>Website</th>
+                      <th>Alamat</th>
+                      <th style={{ width: 80, textAlign: 'center' }}>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredCompanies.map(co => (
+                      <tr key={co.id}>
+                        <td style={{ fontWeight: 600 }}>{co.name}</td>
+                        <td>{co.industry || 'Industri Lainnya'}</td>
+                        <td><span className="badge badge-neutral">{co.size} Karyawan</span></td>
+                        <td>
+                          {co.website ? (
+                            <a href={`https://${co.website}`} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>
+                              {co.website}
+                            </a>
+                          ) : '-'}
+                        </td>
+                        <td>{co.address || '-'}</td>
+                        <td>
+                          <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
+                            <button
+                              className="btn btn-ghost"
+                              style={{ padding: 4, minHeight: 'unset', width: 28, height: 28 }}
+                              onClick={() => {
+                                setEditingCompanyId(co.id);
+                                setCompanyForm({
+                                  name: co.name,
+                                  industry: co.industry || '',
+                                  size: co.size || '1-10',
+                                  website: co.website || '',
+                                  address: co.address || ''
+                                });
+                                setShowCompanyModal(true);
+                              }}
+                              type="button"
+                            >
+                              <Pencil size={12} />
+                            </button>
+                            <button
+                              className="btn btn-ghost text-danger"
+                              style={{ padding: 4, minHeight: 'unset', width: 28, height: 28, color: 'var(--danger)' }}
+                              onClick={() => {
+                                openConfirm({
+                                  title: 'Hapus Perusahaan',
+                                  message: `Apakah Anda yakin ingin menghapus perusahaan "${co.name}"? Tindakan ini tidak dapat dibatalkan.`,
+                                  confirmLabel: 'Ya, Hapus',
+                                  variant: 'danger',
+                                  onConfirm: () => deleteCompany(co.id),
+                                });
+                              }}
+                              type="button"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {filteredCompanies.length === 0 && (
+                      <tr>
+                        <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Perusahaan tidak ditemukan.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )
           )}
         </motion.div>
       </AnimatePresence>
@@ -992,6 +1331,9 @@ export const CRMView: React.FC = () => {
         </motion.div>
       )}
     </AnimatePresence>
+
+      {/* Animated Confirm Dialog */}
+      <ConfirmModal {...confirmModalProps} />
     </div>
   );
 };

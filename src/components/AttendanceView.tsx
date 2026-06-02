@@ -11,8 +11,11 @@ import {
   CheckCircle,
   Wifi,
   WifiOff,
-  UserCheck
+  UserCheck,
+  LayoutGrid,
+  List
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const AttendanceView: React.FC = () => {
   const {
@@ -30,6 +33,8 @@ export const AttendanceView: React.FC = () => {
 
   const { coords, error: gpsError, loading: gpsLoading } = useGeolocation();
   const [activeTab, setActiveTab] = useState<'clock' | 'history' | 'leave'>('clock');
+  const [historyView, setHistoryView] = useState<'table' | 'cards'>('table');
+  const [leaveView, setLeaveView] = useState<'table' | 'cards'>('table');
   
   // Geolocation states
   const [gpsSimulated, setGpsSimulated] = useState<boolean>(true);
@@ -358,52 +363,114 @@ export const AttendanceView: React.FC = () => {
       {/* HISTORY PAGE */}
       {activeTab === 'history' && (
         <div className="card">
-          <div className="card-header">
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
             <span className="card-title">Riwayat Absensi Saya</span>
+            <div style={{ display: 'flex', gap: 2, backgroundColor: 'var(--bg)', padding: 4, borderRadius: 'var(--radius-sm)' }}>
+              <button
+                className={`btn ${historyView === 'cards' ? 'btn-primary' : 'btn-ghost'}`}
+                style={{ padding: '4px 8px', minHeight: 'unset', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}
+                onClick={() => setHistoryView('cards')}
+                type="button"
+              >
+                <LayoutGrid size={14} /> Kartu
+              </button>
+              <button
+                className={`btn ${historyView === 'table' ? 'btn-primary' : 'btn-ghost'}`}
+                style={{ padding: '4px 8px', minHeight: 'unset', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}
+                onClick={() => setHistoryView('table')}
+                type="button"
+              >
+                <List size={14} /> Tabel
+              </button>
+            </div>
           </div>
 
-          <div className="table-container">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Tanggal</th>
-                  <th>Jam Masuk</th>
-                  <th>Jam Keluar</th>
-                  <th>Status</th>
-                  <th>Metode Kerja</th>
-                  <th>Catatan</th>
-                </tr>
-              </thead>
-              <tbody>
-                {myAttendance.map(record => (
-                  <tr key={record.id}>
-                    <td style={{ fontWeight: 600 }}>{record.date}</td>
-                    <td>{record.clock_in_at ? new Date(record.clock_in_at).toLocaleTimeString('id-ID') : '-'}</td>
-                    <td>{record.clock_out_at ? new Date(record.clock_out_at).toLocaleTimeString('id-ID') : '-'}</td>
-                    <td>
-                      <span className={`badge ${
-                        record.status === 'present' ? 'badge-success' :
-                        record.status === 'late' ? 'badge-warning' : 'badge-danger'
-                      }`}>
-                        {record.status === 'present' ? 'Hadir' : record.status === 'late' ? 'Terlambat' : 'Absen'}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="badge badge-neutral">{record.work_mode.toUpperCase()}</span>
-                    </td>
-                    <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{record.notes || '-'}</td>
-                  </tr>
-                ))}
-                {myAttendance.length === 0 && (
+          {historyView === 'table' ? (
+            <div className="table-container">
+              <table className="table">
+                <thead>
                   <tr>
-                    <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-                      Belum ada riwayat kehadiran tercatat.
-                    </td>
+                    <th>Tanggal</th>
+                    <th>Jam Masuk</th>
+                    <th>Jam Keluar</th>
+                    <th>Status</th>
+                    <th>Metode Kerja</th>
+                    <th>Catatan</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {myAttendance.map(record => (
+                    <tr key={record.id}>
+                      <td style={{ fontWeight: 600 }}>{record.date}</td>
+                      <td>{record.clock_in_at ? new Date(record.clock_in_at).toLocaleTimeString('id-ID') : '-'}</td>
+                      <td>{record.clock_out_at ? new Date(record.clock_out_at).toLocaleTimeString('id-ID') : '-'}</td>
+                      <td>
+                        <span className={`badge ${
+                          record.status === 'present' ? 'badge-success' :
+                          record.status === 'late' ? 'badge-warning' : 'badge-danger'
+                        }`}>
+                          {record.status === 'present' ? 'Hadir' : record.status === 'late' ? 'Terlambat' : 'Absen'}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="badge badge-neutral">{record.work_mode.toUpperCase()}</span>
+                      </td>
+                      <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{record.notes || '-'}</td>
+                    </tr>
+                  ))}
+                  {myAttendance.length === 0 && (
+                    <tr>
+                      <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
+                        Belum ada riwayat kehadiran tercatat.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '16px', padding: '20px' }}>
+              {myAttendance.map(record => (
+                <div key={record.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16, border: '1px solid var(--border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 700, fontSize: 14 }}>{record.date}</span>
+                    <span className={`badge ${
+                      record.status === 'present' ? 'badge-success' :
+                      record.status === 'late' ? 'badge-warning' : 'badge-danger'
+                    }`}>
+                      {record.status === 'present' ? 'Hadir' : record.status === 'late' ? 'Terlambat' : 'Absen'}
+                    </span>
+                  </div>
+
+                  <div style={{ fontSize: 13, display: 'flex', flexDirection: 'column', gap: 6, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-muted)' }}>Jam Masuk:</span>
+                      <span style={{ fontWeight: 600 }}>{record.clock_in_at ? new Date(record.clock_in_at).toLocaleTimeString('id-ID') : '-'}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-muted)' }}>Jam Keluar:</span>
+                      <span style={{ fontWeight: 600 }}>{record.clock_out_at ? new Date(record.clock_out_at).toLocaleTimeString('id-ID') : '-'}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: 'var(--text-muted)' }}>Metode Kerja:</span>
+                      <span className="badge badge-neutral">{record.work_mode.toUpperCase()}</span>
+                    </div>
+                  </div>
+
+                  {record.notes && (
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic', backgroundColor: 'var(--bg)', padding: 8, borderRadius: 'var(--radius-sm)' }}>
+                      <strong>Catatan:</strong> {record.notes}
+                    </div>
+                  )}
+                </div>
+              ))}
+              {myAttendance.length === 0 && (
+                <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: 'var(--text-muted)', padding: '24px 0', fontSize: 14 }}>
+                  Belum ada riwayat kehadiran tercatat.
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -465,9 +532,29 @@ export const AttendanceView: React.FC = () => {
 
           {/* Section: Leave actions for user */}
           <div className="card">
-            <div className="card-header">
-              <span className="card-title">Pengajuan Cuti Saya</span>
-              <button className="btn btn-primary" onClick={() => setShowLeaveForm(true)}>
+            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                <span className="card-title" style={{ margin: 0 }}>Pengajuan Cuti Saya</span>
+                <div style={{ display: 'flex', gap: 2, backgroundColor: 'var(--bg)', padding: 4, borderRadius: 'var(--radius-sm)' }}>
+                  <button
+                    className={`btn ${leaveView === 'cards' ? 'btn-primary' : 'btn-ghost'}`}
+                    style={{ padding: '4px 8px', minHeight: 'unset', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}
+                    onClick={() => setLeaveView('cards')}
+                    type="button"
+                  >
+                    <LayoutGrid size={14} /> Kartu
+                  </button>
+                  <button
+                    className={`btn ${leaveView === 'table' ? 'btn-primary' : 'btn-ghost'}`}
+                    style={{ padding: '4px 8px', minHeight: 'unset', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}
+                    onClick={() => setLeaveView('table')}
+                    type="button"
+                  >
+                    <List size={14} /> Tabel
+                  </button>
+                </div>
+              </div>
+              <button className="btn btn-primary" onClick={() => setShowLeaveForm(true)} type="button">
                 <CalendarDays size={16} /> Buat Pengajuan Cuti
               </button>
             </div>
@@ -479,58 +566,122 @@ export const AttendanceView: React.FC = () => {
               </span>
             </div>
 
-            <div className="table-container">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Tipe Pengajuan</th>
-                    <th>Tanggal Mulai</th>
-                    <th>Tanggal Selesai</th>
-                    <th>Jumlah Hari</th>
-                    <th>Alasan</th>
-                    <th>Status</th>
-                    <th>Reviewer</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {myLeaves.map(l => (
-                    <tr key={l.id}>
-                      <td style={{ fontWeight: 600 }}>{l.leave_type}</td>
-                      <td>{l.start_date}</td>
-                      <td>{l.end_date}</td>
-                      <td>{l.total_days} Hari</td>
-                      <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{l.reason}</td>
-                      <td>
-                        <span className={`badge ${
-                          l.status === 'approved' ? 'badge-success' :
-                          l.status === 'rejected' ? 'badge-danger' : 'badge-warning'
-                        }`}>
-                          {l.status.toUpperCase()}
-                        </span>
-                      </td>
-                      <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                        {l.review_notes ? `${l.review_notes}` : '-'}
-                      </td>
-                    </tr>
-                  ))}
-                  {myLeaves.length === 0 && (
+            {leaveView === 'table' ? (
+              <div className="table-container">
+                <table className="table">
+                  <thead>
                     <tr>
-                      <td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-                        Belum ada riwayat pengajuan cuti.
-                      </td>
+                      <th>Tipe Pengajuan</th>
+                      <th>Tanggal Mulai</th>
+                      <th>Tanggal Selesai</th>
+                      <th>Jumlah Hari</th>
+                      <th>Alasan</th>
+                      <th>Status</th>
+                      <th>Reviewer</th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {myLeaves.map(l => (
+                      <tr key={l.id}>
+                        <td style={{ fontWeight: 600 }}>{l.leave_type}</td>
+                        <td>{l.start_date}</td>
+                        <td>{l.end_date}</td>
+                        <td>{l.total_days} Hari</td>
+                        <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{l.reason}</td>
+                        <td>
+                          <span className={`badge ${
+                            l.status === 'approved' ? 'badge-success' :
+                            l.status === 'rejected' ? 'badge-danger' : 'badge-warning'
+                          }`}>
+                            {l.status.toUpperCase()}
+                          </span>
+                        </td>
+                        <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                          {l.review_notes ? `${l.review_notes}` : '-'}
+                        </td>
+                      </tr>
+                    ))}
+                    {myLeaves.length === 0 && (
+                      <tr>
+                        <td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
+                          Belum ada riwayat pengajuan cuti.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px', padding: '4px 0' }}>
+                {myLeaves.map(l => (
+                  <div key={l.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16, border: '1px solid var(--border)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 700, fontSize: 14 }}>{l.leave_type}</span>
+                      <span className={`badge ${
+                        l.status === 'approved' ? 'badge-success' :
+                        l.status === 'rejected' ? 'badge-danger' : 'badge-warning'
+                      }`}>
+                        {l.status.toUpperCase()}
+                      </span>
+                    </div>
+
+                    <div style={{ fontSize: 13, display: 'flex', flexDirection: 'column', gap: 6, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>Tanggal Mulai:</span>
+                        <span style={{ fontWeight: 600 }}>{l.start_date}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>Tanggal Selesai:</span>
+                        <span style={{ fontWeight: 600 }}>{l.end_date}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>Jumlah Hari:</span>
+                        <span style={{ fontWeight: 600, color: 'var(--primary)' }}>{l.total_days} Hari</span>
+                      </div>
+                    </div>
+
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic', backgroundColor: 'var(--bg)', padding: 8, borderRadius: 'var(--radius-sm)' }}>
+                      <strong>Alasan:</strong> "{l.reason}"
+                    </div>
+
+                    {l.review_notes && (
+                      <div style={{ fontSize: 12, color: 'var(--text-muted)', borderTop: '1px dashed var(--border)', paddingTop: 8 }}>
+                        <strong>Catatan Review:</strong> {l.review_notes}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {myLeaves.length === 0 && (
+                  <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: 'var(--text-muted)', padding: '24px 0', fontSize: 14 }}>
+                    Belum ada riwayat pengajuan cuti.
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
 
       {/* LEAVE SUBMISSION FORM MODAL */}
-      {showLeaveForm && (
-        <div className="modal-overlay">
-          <form className="modal-content" onSubmit={handleLeaveSubmit}>
+      <AnimatePresence>
+        {showLeaveForm && (
+          <motion.div
+            className="modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            onClick={() => setShowLeaveForm(false)}
+          >
+            <motion.form
+              className="modal-content"
+              onSubmit={handleLeaveSubmit}
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.92, opacity: 0, y: 10 }}
+              transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+              onClick={(e) => e.stopPropagation()}
+            >
             <div className="modal-header">
               <h3 style={{ fontSize: 16 }}>Form Pengajuan Cuti / Izin</h3>
               <button type="button" className="btn btn-ghost" style={{ minHeight: 'unset', padding: 4 }} onClick={() => setShowLeaveForm(false)}>✕</button>
@@ -590,9 +741,10 @@ export const AttendanceView: React.FC = () => {
               <button type="button" className="btn btn-secondary" onClick={() => setShowLeaveForm(false)}>Batal</button>
               <button type="submit" className="btn btn-primary">Kirim Pengajuan</button>
             </div>
-          </form>
-        </div>
-      )}
+          </motion.form>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
